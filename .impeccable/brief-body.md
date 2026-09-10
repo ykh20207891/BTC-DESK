@@ -22,5 +22,12 @@ FORM: The brief-pinned reference world (six-desk swarm office floor) outranks th
 
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance.
 
+## Adaptations from the reference (deliberate, cited)
+- FIT/DARK toggle → FIT/WIDE (no light theme exists; WIDE releases the 1600px max width).
+- Added: PAPER/LIVE mode chip (PRODUCT.md: paper results are labelled), EN/日本語 language toggle (user request 2026-09-10), DAY DD / GUARD readout (confirmed drawdown guard).
+- Third-party name and mascot replaced by BTC DESK and its own core mark.
+- User requests during the build: potted plants removed; routes to the core brightened then softened to rgba(190,210,245,0.42); floor rug is an ellipse, not a rhombus.
+- Reference cost stats (HUMAN DESK/YR, SWARM RUN COST, CHEAPER) replaced by real UPTIME / HANDOFFS / SETTLED counts: no invented claims.
+
 ## Unresolved
 - Notifications (Telegram/LINE) and VPS deployment are out of scope for this surface.

@@ -153,8 +153,9 @@
     setNum("pnlRun", roi, pct(roi));
     setText("pnlSub", T("pnl_sub", { mode: modeT, n: L.n || 0 }));
     const big = $("pnlBig"); big.textContent = money(eq); big.className = "pnl-big " + (eq > seed ? "" : eq < seed ? "neg" : "flat");
-    const dc = $("pnlDelta"), lp = L.last_pnl || 0;
-    dc.textContent = (lp > 0 ? "▲ " : lp < 0 ? "▼ " : "■ ") + smoney(lp, 2); dc.className = "delta-chip num " + (lp > 0 ? "" : lp < 0 ? "neg" : "flat");
+    const lp = L.last_pnl || 0;
+    setText("pnlDelta", smoney(lp, 2)); $("pnlDeltaWrap").className = "delta-chip num " + (lp > 0 ? "" : lp < 0 ? "neg" : "flat");
+    $("pnlDeltaIco").setAttribute("d", lp > 0 ? "M1 7L4 1L7 7Z" : lp < 0 ? "M1 1L4 7L7 1Z" : "M1 1H7V7H1Z");
     setText("pnlDeltaLbl", L.last_dir ? T("settled_last", { dir: I18N.dir(L.last_dir) }) : T("no_settle"));
     setNum("pnlRoi", roi, pct(roi, 3)); setText("pnlSeed", money(seed));
     setText("pnlWin", L.n ? (L.win_rate * 100).toFixed(1) + "%" : "–"); setNum("pnlEdge", L.avg_edge || 0, L.n ? scents(L.avg_edge) : "–");

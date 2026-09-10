@@ -243,7 +243,8 @@ canvas { display: block; }
 .pnl-big.neg { color: var(--down); }
 .pnl-big.flat { color: var(--text); }
 .pnl-delta { display: flex; align-items: center; gap: 10px; font-size: 8px; letter-spacing: 0.12em; font-weight: 700; }
-.delta-chip { font-size: 10px; font-weight: 800; padding: 2px 6px; background: rgba(34, 197, 94, 0.12); color: var(--up); letter-spacing: 0.04em; }
+.delta-chip { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 800; padding: 2px 6px; background: rgba(34, 197, 94, 0.12); color: var(--up); letter-spacing: 0.04em; }
+.delta-ico { flex: none; }
 .delta-chip.neg { background: rgba(239, 68, 68, 0.12); color: var(--down); }
 .delta-chip.flat { background: var(--line); color: var(--muted); }
 .pnl-roi { font-size: 8px; letter-spacing: 0.12em; color: var(--muted); font-weight: 700; }

@@ -2,7 +2,7 @@
 version: 1
 slug: "frontend-index-html"
 primary_target: "frontend/index.html"
-related_targets: ["frontend/app.js","frontend/app.css"]
+related_targets: ["frontend/app.js","frontend/app.css","frontend/floor.js","frontend/charts.js","frontend/i18n.js"]
 ---
 
 # Surface: frontend/index.html (BTC DESK dashboard)
@@ -28,6 +28,13 @@ FIRST VIEWPORT (1440×900): top bar with product name, nav (FLOOR · TAPE · BOO
 FORM: The brief-pinned reference world (six-desk swarm office floor) outranks the ordered list and the roll; seed key a38f3609, assigned index 5 acknowledged and yielded to the pin. Signature interaction: tickets routed across the office floor in sync with the real pipeline stage. Motion grammar: 150–250ms state transitions in the DOM; continuous but calm canvas motion (bobbing orbs, pulsing core, ticket flights) bounded to the floor canvas; no page-load choreography.
 
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance.
+
+## Adaptations from the reference (deliberate, cited)
+- FIT/DARK toggle → FIT/WIDE (no light theme exists; WIDE releases the 1600px max width).
+- Added: PAPER/LIVE mode chip (PRODUCT.md: paper results are labelled), EN/日本語 language toggle (user request 2026-09-10), DAY DD / GUARD readout (confirmed drawdown guard).
+- Third-party name and mascot replaced by BTC DESK and its own core mark.
+- User requests during the build: potted plants removed; routes to the core brightened then softened to rgba(190,210,245,0.42); floor rug is an ellipse, not a rhombus.
+- Reference cost stats (HUMAN DESK/YR, SWARM RUN COST, CHEAPER) replaced by real UPTIME / HANDOFFS / SETTLED counts: no invented claims.
 
 ## Unresolved
 - Notifications (Telegram/LINE) and VPS deployment are out of scope for this surface.

@@ -1,0 +1,570 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-10T16:13:35+00:00",
+  "title": "Design System: BTC DESK",
+  "extensions": {
+    "colorMeta": {
+      "ground": {
+        "role": "neutral",
+        "displayName": "Ground",
+        "canonical": "#05070b",
+        "tonalRamp": [
+          "oklch(15% 0.008 260)",
+          "oklch(25% 0.008 260)",
+          "oklch(35% 0.015 260)",
+          "oklch(45% 0.015 260)",
+          "oklch(55% 0.015 260)",
+          "oklch(65% 0.015 260)",
+          "oklch(80% 0.015 260)",
+          "oklch(95% 0.008 260)"
+        ]
+      },
+      "panel": {
+        "role": "neutral",
+        "displayName": "Panel",
+        "canonical": "#090c12",
+        "tonalRamp": [
+          "oklch(15% 0.010 260)",
+          "oklch(25% 0.010 260)",
+          "oklch(35% 0.018 260)",
+          "oklch(45% 0.018 260)",
+          "oklch(55% 0.018 260)",
+          "oklch(65% 0.018 260)",
+          "oklch(80% 0.018 260)",
+          "oklch(95% 0.010 260)"
+        ]
+      },
+      "panel-raised": {
+        "role": "neutral",
+        "displayName": "Panel Raised",
+        "canonical": "#0d1119",
+        "tonalRamp": [
+          "oklch(15% 0.011 260)",
+          "oklch(25% 0.011 260)",
+          "oklch(35% 0.020 260)",
+          "oklch(45% 0.020 260)",
+          "oklch(55% 0.020 260)",
+          "oklch(65% 0.020 260)",
+          "oklch(80% 0.020 260)",
+          "oklch(95% 0.011 260)"
+        ]
+      },
+      "hairline": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "#151b26",
+        "tonalRamp": [
+          "oklch(15% 0.014 260)",
+          "oklch(25% 0.014 260)",
+          "oklch(35% 0.025 260)",
+          "oklch(45% 0.025 260)",
+          "oklch(55% 0.025 260)",
+          "oklch(65% 0.025 260)",
+          "oklch(80% 0.025 260)",
+          "oklch(95% 0.014 260)"
+        ]
+      },
+      "hairline-strong": {
+        "role": "neutral",
+        "displayName": "Hairline Strong",
+        "canonical": "#1e2633",
+        "tonalRamp": [
+          "oklch(15% 0.015 260)",
+          "oklch(25% 0.015 260)",
+          "oklch(35% 0.028 260)",
+          "oklch(45% 0.028 260)",
+          "oklch(55% 0.028 260)",
+          "oklch(65% 0.028 260)",
+          "oklch(80% 0.028 260)",
+          "oklch(95% 0.015 260)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#e7ebf2",
+        "tonalRamp": [
+          "oklch(15% 0.006 260)",
+          "oklch(25% 0.006 260)",
+          "oklch(35% 0.010 260)",
+          "oklch(45% 0.010 260)",
+          "oklch(55% 0.010 260)",
+          "oklch(65% 0.010 260)",
+          "oklch(80% 0.010 260)",
+          "oklch(95% 0.006 260)"
+        ]
+      },
+      "ink-muted": {
+        "role": "neutral",
+        "displayName": "Ink Muted",
+        "canonical": "#7d8798",
+        "tonalRamp": [
+          "oklch(15% 0.011 260)",
+          "oklch(25% 0.011 260)",
+          "oklch(35% 0.020 260)",
+          "oklch(45% 0.020 260)",
+          "oklch(55% 0.020 260)",
+          "oklch(65% 0.020 260)",
+          "oklch(80% 0.020 260)",
+          "oklch(95% 0.011 260)"
+        ]
+      },
+      "ink-dim": {
+        "role": "neutral",
+        "displayName": "Ink Dim",
+        "canonical": "#4d5666",
+        "tonalRamp": [
+          "oklch(15% 0.014 260)",
+          "oklch(25% 0.014 260)",
+          "oklch(35% 0.025 260)",
+          "oklch(45% 0.025 260)",
+          "oklch(55% 0.025 260)",
+          "oklch(65% 0.025 260)",
+          "oklch(80% 0.025 260)",
+          "oklch(95% 0.014 260)"
+        ]
+      },
+      "spotter-green": {
+        "role": "primary",
+        "displayName": "Spotter Green",
+        "canonical": "#22c993",
+        "tonalRamp": [
+          "oklch(15% 0.088 163)",
+          "oklch(25% 0.088 163)",
+          "oklch(35% 0.160 163)",
+          "oklch(45% 0.160 163)",
+          "oklch(55% 0.160 163)",
+          "oklch(65% 0.160 163)",
+          "oklch(80% 0.160 163)",
+          "oklch(95% 0.088 163)"
+        ]
+      },
+      "prior-orange": {
+        "role": "primary",
+        "displayName": "Prior Orange",
+        "canonical": "#ff8a3d",
+        "tonalRamp": [
+          "oklch(15% 0.105 50)",
+          "oklch(25% 0.105 50)",
+          "oklch(35% 0.190 50)",
+          "oklch(45% 0.190 50)",
+          "oklch(55% 0.190 50)",
+          "oklch(65% 0.190 50)",
+          "oklch(80% 0.190 50)",
+          "oklch(95% 0.105 50)"
+        ]
+      },
+      "edge-pink": {
+        "role": "primary",
+        "displayName": "Edge Pink",
+        "canonical": "#ff4f8f",
+        "tonalRamp": [
+          "oklch(15% 0.121 358)",
+          "oklch(25% 0.121 358)",
+          "oklch(35% 0.220 358)",
+          "oklch(45% 0.220 358)",
+          "oklch(55% 0.220 358)",
+          "oklch(65% 0.220 358)",
+          "oklch(80% 0.220 358)",
+          "oklch(95% 0.121 358)"
+        ]
+      },
+      "kelly-violet": {
+        "role": "primary",
+        "displayName": "Kelly Violet",
+        "canonical": "#9b6bff",
+        "tonalRamp": [
+          "oklch(15% 0.110 295)",
+          "oklch(25% 0.110 295)",
+          "oklch(35% 0.200 295)",
+          "oklch(45% 0.200 295)",
+          "oklch(55% 0.200 295)",
+          "oklch(65% 0.200 295)",
+          "oklch(80% 0.200 295)",
+          "oklch(95% 0.110 295)"
+        ]
+      },
+      "taker-blue": {
+        "role": "primary",
+        "displayName": "Taker Blue",
+        "canonical": "#4a8dff",
+        "tonalRamp": [
+          "oklch(15% 0.105 262)",
+          "oklch(25% 0.105 262)",
+          "oklch(35% 0.190 262)",
+          "oklch(45% 0.190 262)",
+          "oklch(55% 0.190 262)",
+          "oklch(65% 0.190 262)",
+          "oklch(80% 0.190 262)",
+          "oklch(95% 0.105 262)"
+        ]
+      },
+      "closer-ember": {
+        "role": "primary",
+        "displayName": "Closer Ember",
+        "canonical": "#ff5a3c",
+        "tonalRamp": [
+          "oklch(15% 0.116 30)",
+          "oklch(25% 0.116 30)",
+          "oklch(35% 0.210 30)",
+          "oklch(45% 0.210 30)",
+          "oklch(55% 0.210 30)",
+          "oklch(65% 0.210 30)",
+          "oklch(80% 0.210 30)",
+          "oklch(95% 0.116 30)"
+        ]
+      },
+      "core-white": {
+        "role": "tertiary",
+        "displayName": "Core White",
+        "canonical": "#f4f7fb",
+        "tonalRamp": [
+          "oklch(15% 0.006 250)",
+          "oklch(25% 0.006 250)",
+          "oklch(35% 0.010 250)",
+          "oklch(45% 0.010 250)",
+          "oklch(55% 0.010 250)",
+          "oklch(65% 0.010 250)",
+          "oklch(80% 0.010 250)",
+          "oklch(95% 0.006 250)"
+        ]
+      },
+      "core-ink": {
+        "role": "tertiary",
+        "displayName": "Core Ink",
+        "canonical": "#0b1220",
+        "tonalRamp": [
+          "oklch(15% 0.017 262)",
+          "oklch(25% 0.017 262)",
+          "oklch(35% 0.030 262)",
+          "oklch(45% 0.030 262)",
+          "oklch(55% 0.030 262)",
+          "oklch(65% 0.030 262)",
+          "oklch(80% 0.030 262)",
+          "oklch(95% 0.017 262)"
+        ]
+      },
+      "core-label": {
+        "role": "tertiary",
+        "displayName": "Core Label",
+        "canonical": "#c7cfdb",
+        "tonalRamp": [
+          "oklch(15% 0.008 255)",
+          "oklch(25% 0.008 255)",
+          "oklch(35% 0.015 255)",
+          "oklch(45% 0.015 255)",
+          "oklch(55% 0.015 255)",
+          "oklch(65% 0.015 255)",
+          "oklch(80% 0.015 255)",
+          "oklch(95% 0.008 255)"
+        ]
+      },
+      "profit-green": {
+        "role": "secondary",
+        "displayName": "Profit Green",
+        "canonical": "#22c55e",
+        "tonalRamp": [
+          "oklch(15% 0.105 150)",
+          "oklch(25% 0.105 150)",
+          "oklch(35% 0.190 150)",
+          "oklch(45% 0.190 150)",
+          "oklch(55% 0.190 150)",
+          "oklch(65% 0.190 150)",
+          "oklch(80% 0.190 150)",
+          "oklch(95% 0.105 150)"
+        ]
+      },
+      "loss-red": {
+        "role": "secondary",
+        "displayName": "Loss Red",
+        "canonical": "#ef4444",
+        "tonalRamp": [
+          "oklch(15% 0.116 25)",
+          "oklch(25% 0.116 25)",
+          "oklch(35% 0.210 25)",
+          "oklch(45% 0.210 25)",
+          "oklch(55% 0.210 25)",
+          "oklch(65% 0.210 25)",
+          "oklch(80% 0.210 25)",
+          "oklch(95% 0.116 25)"
+        ]
+      },
+      "amber": {
+        "role": "secondary",
+        "displayName": "Amber",
+        "canonical": "#f5b942",
+        "tonalRamp": [
+          "oklch(15% 0.088 85)",
+          "oklch(25% 0.088 85)",
+          "oklch(35% 0.160 85)",
+          "oklch(45% 0.160 85)",
+          "oklch(55% 0.160 85)",
+          "oklch(65% 0.160 85)",
+          "oklch(80% 0.160 85)",
+          "oklch(95% 0.088 85)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "The single balance figure in SWARM PNL; coloured by profit, loss, or flat."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "The UTC clock."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Desk names and the brand wordmark; 100% width, 800 weight."
+      },
+      "stat": {
+        "displayName": "Stat",
+        "purpose": "Gauge counts, top-bar stats, pnl and telemetry values, log amounts (12-16px)."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Risk inputs and notes; the 11px base of the page at 94% width."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Panel headers, nav, strip, buttons, chips, toggles, tape, log rows; uppercase, 0.10-0.12em."
+      },
+      "micro": {
+        "displayName": "Micro",
+        "purpose": "7-8px stage lines, captions, axis labels, footer; uppercase, 0.12-0.14em."
+      }
+    },
+    "shadows": [
+      {
+        "name": "live-dot",
+        "value": "0 0 6px <colour>",
+        "purpose": "Status dots, active desk dots and progress bars; the colour is the desk or state colour."
+      },
+      {
+        "name": "signal-glow",
+        "value": "0 0 8px currentColor",
+        "purpose": "The dot inside the SWARM control."
+      },
+      {
+        "name": "brand-halo",
+        "value": "0 0 12px rgba(255,255,255,0.35)",
+        "purpose": "The core mark in the top bar only."
+      },
+      {
+        "name": "icon-glow",
+        "value": "drop-shadow(0 0 8px color-mix(in srgb, var(--c) 55%, transparent))",
+        "purpose": "The 30px desk icons."
+      },
+      {
+        "name": "drawer-lift",
+        "value": "-12px 0 30px rgba(0,0,0,0.5)",
+        "purpose": "The risk drawer sliding over the page; the only lifted surface."
+      },
+      {
+        "name": "overlay-scrim",
+        "value": "background: rgba(9,12,18,0.9); backdrop-filter: blur(4px)",
+        "purpose": "MODEL VS BOOK and ON DECK overlays floating over the floor canvas."
+      }
+    ],
+    "motion": [
+      {
+        "name": "state-fast",
+        "value": "150ms",
+        "purpose": "Hover and state colour/border/background changes on buttons, toggles, nav, chips, strip items."
+      },
+      {
+        "name": "state-medium",
+        "value": "200ms",
+        "purpose": "Desk card running tint and the big PnL colour change."
+      },
+      {
+        "name": "row-in",
+        "value": "250ms ease-out, opacity 0 to 1, translateY(-3px) to 0",
+        "purpose": "New activity-log rows."
+      },
+      {
+        "name": "bar-fill",
+        "value": "transform 300ms cubic-bezier(0.2, 0.7, 0.2, 1)",
+        "purpose": "Desk progress rules (scaleX from the left)."
+      },
+      {
+        "name": "bias-fill",
+        "value": "transform 400ms",
+        "purpose": "Bias meter fills."
+      },
+      {
+        "name": "tape-loop",
+        "value": "translateX 0 to -50% 90s linear infinite; paused on hover; none under prefers-reduced-motion",
+        "purpose": "The ticker tape."
+      },
+      {
+        "name": "floor-bob",
+        "value": "sin(t*0.0022 + i*1.3)*4px orbs; sin(t*0.0016)*3px core; frozen under prefers-reduced-motion",
+        "purpose": "Continuous canvas motion, bounded to the office floor."
+      },
+      {
+        "name": "floor-breathe",
+        "value": "core shadowBlur 44 +/- sin(t*0.008)*10 while routing; running orb ring 23 +/- sin(t*0.006)*2",
+        "purpose": "The core and active orb pulse."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "strip-tight",
+        "value": "1300px"
+      },
+      {
+        "name": "bar-tight",
+        "value": "1280px"
+      },
+      {
+        "name": "no-tagline",
+        "value": "1180px"
+      },
+      {
+        "name": "single-column",
+        "value": "1080px"
+      },
+      {
+        "name": "mobile",
+        "value": "820px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "The default small action; outline colour says what it will do.",
+      "html": "<button class=\"ds-btn\">CUT A TICKET NOW</button> <button class=\"ds-btn ds-btn-ok\">APPROVE</button> <button class=\"ds-btn ds-btn-no\">REJECT</button>",
+      "css": ".ds-btn { font-family: Archivo, system-ui, sans-serif; font-stretch: 94%; text-transform: uppercase; font-variant-numeric: tabular-nums; font-size: 9px; font-weight: 800; letter-spacing: 0.12em; padding: 5px 10px; background: none; border: 1px solid var(--line-2, #1e2633); border-radius: 0; color: var(--text, #e7ebf2); cursor: pointer; transition: background 150ms, border-color 150ms; } .ds-btn:hover { background: var(--line-2, #1e2633); } .ds-btn:focus-visible { outline: 1px solid var(--focus, #4a8dff); outline-offset: 2px; } .ds-btn:disabled { opacity: 0.4; cursor: default; } .ds-btn-ok { border-color: var(--up, #22c55e); color: var(--up, #22c55e); } .ds-btn-ok:hover { background: rgba(34,197,94,0.12); } .ds-btn-no { border-color: var(--down, #ef4444); color: var(--down, #ef4444); } .ds-btn-no:hover { background: rgba(239,68,68,0.12); }"
+    },
+    {
+      "name": "Swarm Control",
+      "kind": "button",
+      "refersTo": "button-swarm",
+      "description": "The primary action: pause/resume the swarm; colour follows engine state.",
+      "html": "<button class=\"ds-swarm\"><i></i><span>SWARM ONLINE</span></button> <button class=\"ds-swarm ds-swarm-paused\"><i></i><span>SWARM PAUSED</span></button>",
+      "css": ".ds-swarm { font-family: Archivo, system-ui, sans-serif; font-stretch: 94%; text-transform: uppercase; font-variant-numeric: tabular-nums; display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; background: none; border: 1px solid var(--spotter, #22c993); border-radius: 0; color: var(--spotter, #22c993); font-size: 9px; font-weight: 800; letter-spacing: 0.12em; cursor: pointer; transition: background 150ms, color 150ms, border-color 150ms; } .ds-swarm i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; box-shadow: 0 0 8px currentColor; } .ds-swarm:hover { background: rgba(34,201,147,0.1); } .ds-swarm:focus-visible { outline: 1px solid var(--focus, #4a8dff); outline-offset: 2px; } .ds-swarm-paused { border-color: var(--amber, #f5b942); color: var(--amber, #f5b942); } .ds-swarm-paused:hover { background: rgba(245,185,66,0.1); }"
+    },
+    {
+      "name": "Mode Chip and Delta Chip",
+      "kind": "chip",
+      "refersTo": "chip-mode-paper",
+      "description": "PAPER (amber) or LIVE (red) book indicator; delta chips tint green/red at 12%.",
+      "html": "<span class=\"ds-chip\">PAPER</span> <span class=\"ds-chip ds-chip-live\">LIVE</span> <span class=\"ds-delta\">▲ +$11.36</span> <span class=\"ds-delta ds-delta-neg\">▼ -$11.36</span>",
+      "css": ".ds-chip { font-family: Archivo, system-ui, sans-serif; font-stretch: 94%; text-transform: uppercase; font-variant-numeric: tabular-nums; display: inline-block; font-size: 9px; font-weight: 800; letter-spacing: 0.12em; padding: 3px 7px; border: 1px solid var(--line-2, #1e2633); color: var(--amber, #f5b942); } .ds-chip-live { color: var(--down, #ef4444); border-color: var(--down, #ef4444); } .ds-delta { font-family: Archivo, system-ui, sans-serif; font-stretch: 94%; text-transform: uppercase; font-variant-numeric: tabular-nums; display: inline-block; font-size: 10px; font-weight: 800; letter-spacing: 0.04em; padding: 2px 6px; background: rgba(34,197,94,0.12); color: var(--up, #22c55e); } .ds-delta-neg { background: rgba(239,68,68,0.12); color: var(--down, #ef4444); }"
+    },
+    {
+      "name": "Toggle Group",
+      "kind": "chip",
+      "refersTo": "toggle",
+      "description": "Segmented pair (EN | 日本語, FIT | WIDE) inside one outline.",
+      "html": "<div class=\"ds-toggles\"><button class=\"ds-tg ds-tg-on\">FIT</button><button class=\"ds-tg\">WIDE</button></div>",
+      "css": ".ds-toggles { display: inline-flex; border: 1px solid var(--line-2, #1e2633); } .ds-tg { font-family: Archivo, system-ui, sans-serif; font-stretch: 94%; text-transform: uppercase; font-variant-numeric: tabular-nums; font-size: 9px; font-weight: 700; letter-spacing: 0.1em; padding: 4px 9px; background: none; border: 0; color: var(--muted, #7d8798); cursor: pointer; transition: background 150ms, color 150ms; } .ds-tg:hover { color: var(--text, #e7ebf2); } .ds-tg:focus-visible { outline: 1px solid var(--focus, #4a8dff); outline-offset: 2px; } .ds-tg-on { background: var(--line-2, #1e2633); color: var(--text, #e7ebf2); }"
+    },
+    {
+      "name": "Top Bar Navigation",
+      "kind": "nav",
+      "refersTo": "nav-link",
+      "description": "Brand mark, wordmark, section links with a 1px underline on the active item.",
+      "html": "<nav class=\"ds-topbar\"><span class=\"ds-brand\"><span class=\"ds-mark\"></span><b>BTC DESK</b><span class=\"ds-tag\">SIX AGENTS · ONE OFFICE FLOOR · BTC 15M</span></span><a class=\"ds-nav ds-nav-on\" href=\"#\">FLOOR</a><a class=\"ds-nav\" href=\"#\">TAPE</a><a class=\"ds-nav\" href=\"#\">BOOK</a></nav>",
+      "css": ".ds-topbar { font-family: Archivo, system-ui, sans-serif; font-stretch: 94%; text-transform: uppercase; font-variant-numeric: tabular-nums; display: flex; align-items: center; gap: 16px; height: 46px; padding: 0 14px; background: var(--panel, #090c12); border-bottom: 1px solid var(--line, #151b26); color: var(--text, #e7ebf2); } .ds-brand { display: flex; align-items: center; gap: 9px; margin-right: 6px; } .ds-mark { position: relative; width: 16px; height: 16px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #fff 0, #dfe6f0 55%, #aab6c8 100%); box-shadow: 0 0 12px rgba(255,255,255,0.35); } .ds-mark::after { content: \"\"; position: absolute; inset: 5px; border-radius: 50%; border: 2px solid #0a0d14; border-right-color: transparent; transform: rotate(-35deg); } .ds-brand b { font-size: 13px; font-weight: 800; letter-spacing: 0.06em; font-stretch: 100%; } .ds-tag { font-size: 9px; letter-spacing: 0.12em; color: var(--muted, #7d8798); font-weight: 600; } .ds-nav { color: var(--muted, #7d8798); text-decoration: none; font-size: 10px; font-weight: 700; letter-spacing: 0.12em; padding: 4px 0; border-bottom: 1px solid transparent; transition: color 150ms, border-color 150ms; } .ds-nav:hover { color: var(--text, #e7ebf2); } .ds-nav:focus-visible { outline: 1px solid var(--focus, #4a8dff); outline-offset: 2px; } .ds-nav-on { color: var(--text, #e7ebf2); border-bottom-color: var(--text, #e7ebf2); }"
+    },
+    {
+      "name": "Panel with Header",
+      "kind": "card",
+      "refersTo": "panel-header",
+      "description": "Every panel: hairline box, 24px header with square, TITLE, em-dash subtitle, right cell.",
+      "html": "<section class=\"ds-panel\"><div class=\"ds-ph\"><span class=\"ds-ph-sq\"></span><span class=\"ds-ph-title\">ANALOG MATCHER</span><span class=\"ds-ph-sub\">— K-NN · SEEN THIS BEFORE</span><span class=\"ds-ph-right\">DTW 0.192 · SCAN 132,480</span></div><div class=\"ds-panel-body\">Panel body</div></section>",
+      "css": ".ds-panel { font-family: Archivo, system-ui, sans-serif; font-stretch: 94%; text-transform: uppercase; font-variant-numeric: tabular-nums; background: var(--panel, #090c12); border: 1px solid var(--line, #151b26); color: var(--text, #e7ebf2); display: flex; flex-direction: column; min-width: 320px; } .ds-ph { display: flex; align-items: center; gap: 7px; height: 24px; padding: 0 10px; border-bottom: 1px solid var(--line, #151b26); font-size: 9px; letter-spacing: 0.12em; font-weight: 700; white-space: nowrap; overflow: hidden; } .ds-ph-sq { width: 5px; height: 5px; background: var(--text, #e7ebf2); flex: none; } .ds-ph-title { font-weight: 800; } .ds-ph-sub { color: var(--dim, #4d5666); font-weight: 600; overflow: hidden; text-overflow: ellipsis; } .ds-ph-right { margin-left: auto; color: var(--muted, #7d8798); } .ds-panel-body { padding: 8px 12px 10px; font-size: 11px; color: var(--muted, #7d8798); text-transform: none; }"
+    },
+    {
+      "name": "Desk Card",
+      "kind": "card",
+      "refersTo": "desk-card",
+      "description": "One of six pipeline desks; --c sets the desk colour for dot, bar, tint, and icon glow.",
+      "html": "<article class=\"ds-desk ds-desk-run\" style=\"--c: var(--edge, #ff4f8f)\"><div class=\"ds-desk-top\"><span>03 · EDGE</span><span class=\"ds-desk-st\"><i></i>RUN</span></div><div class=\"ds-desk-mid\"><svg class=\"ds-desk-ico\" viewBox=\"0 0 30 30\" aria-hidden=\"true\"><path d=\"M15 2C15 2 27 12 27 18A12 12 0 0 1 3 18C3 12 15 2 15 2Z\" fill=\"var(--c)\"/><g stroke=\"#fff\" stroke-width=\"2.6\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M8 19H14V11H21\"/></g></svg><div><div class=\"ds-desk-name\">EDGE</div><div class=\"ds-desk-note\">MODEL 23.6¢ VS BOOK 35.5¢</div></div></div><div class=\"ds-desk-bot\"><span class=\"ds-desk-word\">RUN</span><span>+11.9¢</span></div><div class=\"ds-desk-bar\"><i style=\"transform: scaleX(0.6)\"></i></div></article>",
+      "css": ".ds-desk { font-family: Archivo, system-ui, sans-serif; font-stretch: 94%; text-transform: uppercase; font-variant-numeric: tabular-nums; --c: var(--muted, #7d8798); position: relative; width: 240px; height: 96px; padding: 8px 12px 0; background: var(--panel, #090c12); border: 1px solid var(--line, #151b26); color: var(--text, #e7ebf2); display: grid; grid-template-rows: auto 1fr auto; transition: background 200ms; } .ds-desk-run { background: color-mix(in srgb, var(--c) 6%, var(--panel, #090c12)); } .ds-desk-top, .ds-desk-bot { display: flex; justify-content: space-between; font-size: 8px; letter-spacing: 0.14em; color: var(--dim, #4d5666); font-weight: 700; } .ds-desk-bot { padding-bottom: 6px; } .ds-desk-st { display: inline-flex; align-items: center; gap: 5px; color: var(--c); } .ds-desk-st i { width: 5px; height: 5px; border-radius: 50%; background: var(--c); box-shadow: 0 0 6px var(--c); } .ds-desk-mid { display: flex; align-items: center; gap: 12px; } .ds-desk-ico { width: 30px; height: 30px; flex: none; filter: drop-shadow(0 0 8px color-mix(in srgb, var(--c) 55%, transparent)); } .ds-desk-name { font-size: 15px; font-weight: 800; letter-spacing: 0.06em; font-stretch: 100%; } .ds-desk-note { font-size: 8px; letter-spacing: 0.08em; color: var(--muted, #7d8798); font-weight: 600; margin-top: 2px; } .ds-desk-bar { position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--line, #151b26); } .ds-desk-bar i { display: block; height: 100%; width: 100%; background: var(--c); box-shadow: 0 0 6px var(--c); transform-origin: left; transition: transform 300ms cubic-bezier(0.2, 0.7, 0.2, 1); }"
+    },
+    {
+      "name": "Risk Input",
+      "kind": "input",
+      "refersTo": "input-risk",
+      "description": "Label + right-aligned numeric field in the risk drawer.",
+      "html": "<label class=\"ds-field\"><span>MAX LEVERAGE</span><input class=\"ds-input\" type=\"number\" value=\"3\"></label>",
+      "css": ".ds-field { font-family: Archivo, system-ui, sans-serif; font-stretch: 94%; text-transform: uppercase; font-variant-numeric: tabular-nums; display: grid; grid-template-columns: 1fr 96px; align-items: center; width: 296px; font-size: 8px; letter-spacing: 0.14em; color: var(--muted, #7d8798); font-weight: 800; } .ds-input { font-family: Archivo, system-ui, sans-serif; font-stretch: 94%; font-variant-numeric: tabular-nums; background: var(--bg, #05070b); border: 1px solid var(--line-2, #1e2633); border-radius: 0; color: var(--text, #e7ebf2); font-size: 11px; font-weight: 700; padding: 5px 7px; text-align: right; } .ds-input:hover { border-color: var(--dim, #4d5666); } .ds-input:focus-visible { outline: 1px solid var(--focus, #4a8dff); outline-offset: 2px; }"
+    },
+    {
+      "name": "Activity Log Row",
+      "kind": "custom",
+      "refersTo": "log-row",
+      "description": "Dot, AGENT, ACTION, amount, text; the agent colour comes from --c.",
+      "html": "<ol class=\"ds-log\"><li style=\"--c: var(--taker, #4a8dff)\"><i></i><span class=\"ds-ag\">TAKER</span><span class=\"ds-ac\">FILL</span><span class=\"ds-am\">$9,251</span><span class=\"ds-tx\">sold 0.12 BTC at $77,092.3 · sl $77,566 · tp $76,410 · paper</span></li><li style=\"--c: var(--core, #c7cfdb)\"><i></i><span class=\"ds-ag\">CORE</span><span class=\"ds-ac\">SYSTEM</span><span class=\"ds-am\"></span><span class=\"ds-tx\">stream connected · swarm online</span></li></ol>",
+      "css": ".ds-log { font-family: Archivo, system-ui, sans-serif; font-stretch: 94%; font-variant-numeric: tabular-nums; list-style: none; margin: 0; padding: 0; width: 520px; background: var(--panel, #090c12); border: 1px solid var(--line, #151b26); } .ds-log li { --c: var(--muted, #7d8798); display: grid; grid-template-columns: 8px 58px 66px 62px 1fr; gap: 8px; align-items: center; padding: 4px 10px; border-bottom: 1px solid var(--line, #151b26); font-size: 9px; letter-spacing: 0.04em; font-weight: 600; color: var(--muted, #7d8798); animation: ds-rowin 250ms ease-out; } @keyframes ds-rowin { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: none; } } .ds-log li i { width: 5px; height: 5px; border-radius: 50%; background: var(--c); box-shadow: 0 0 5px var(--c); } .ds-ag { color: var(--c); font-weight: 800; letter-spacing: 0.12em; } .ds-ac { letter-spacing: 0.12em; font-weight: 700; } .ds-am { font-weight: 800; color: var(--text, #e7ebf2); } .ds-tx { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Night Trading Floor",
+    "overview": "BTC DESK is one dark screen that shows a whole decision chain as a working office. The ground is near-black, panels sit one step lighter, and everything is separated by 1px hairlines rather than gaps, shadows, or rounded cards. Density is the point: the operator glances at it from across a dark room in the evening, so state is carried by colour and by very small, heavily tracked uppercase labels, with numbers set in tabular figures so columns hold still while they tick.\n\nSix desk colours (Spotter green, Prior orange, Edge pink, Kelly violet, Taker blue, Closer ember) carry all pipeline state. Profit green, loss red, and amber are the only other hues; amber means \"attention, not danger\" (paper mode, paused, on deck). The glowing white core and its open-ring mark are the product's own identity. The one place the surface moves continuously is the isometric office floor canvas: orbs bob, the core pulses, tickets fly desk to desk; the DOM around it only transitions on state change.\n\nThe look is pinned to a user-supplied reference (PRODUCT.md, \"忠実に\"). Deliberate departures from that reference: the FIT/WIDE layout toggle replaces its FIT/DARK (there is no light theme and none is planned); a PAPER/LIVE mode chip and an EN/日本語 language toggle were added; third-party names and mascot are replaced by BTC DESK and the core mark; potted plants were removed, the desk-to-core routes were softened, and the floor rug is a single ellipse. The direction contract named the ground #06080d; the build shipped #05070b, and the build is normative.",
+    "keyCharacteristics": [
+      "Near-black ground, panels one step lighter, 1px hairline separation everywhere, zero radius on every rectangle",
+      "Six desk colours carry pipeline state; green/red carry money; amber carries attention",
+      "One compact variable grotesque (Archivo) at 94% width for everything, 100% width for the few big numbers and names",
+      "7–9px tracked uppercase labels above 11–34px bold tabular numerals",
+      "Glow (box-shadow / canvas shadowBlur) is reserved for live dots, active desks, orbs and the core; it is a state signal, never decoration",
+      "Continuous motion is bounded to the floor canvas; DOM transitions are 150–400ms and state-driven"
+    ],
+    "rules": [
+      {
+        "name": "The Six Voices Rule",
+        "body": "A desk's colour is set once as `--c` on the desk card, gauge, orb, and log row, and every state cue (status dot, progress bar, monitor glow, running tint at 6% over panel, done word) reads from it. Never introduce a seventh pipeline hue.",
+        "section": "colors"
+      },
+      {
+        "name": "The Three Money Colours Rule",
+        "body": "Green means profit or approve, red means loss, reject, live, or offline, amber means paper, paused, or awaiting a human. No other hue may carry a financial or operational meaning.",
+        "section": "colors"
+      },
+      {
+        "name": "The Glow Is State Rule",
+        "body": "Glow appears only where something is live: dots (`0 0 6px`), active desk dots and bars (`0 0 6px var(--c)`), desk icons (`drop-shadow` at 55% of `--c`), and the canvas orbs and core. Resting surfaces never glow.",
+        "section": "colors"
+      },
+      {
+        "name": "The Tracked Cap Rule",
+        "body": "Anything under 11px is uppercase and tracked at least 0.10em (0.05em in Japanese). Lowercase appears only in the tape and log free text and in the risk note.",
+        "section": "typography"
+      },
+      {
+        "name": "The Tabular Rule",
+        "body": "Every number sits in `tabular-nums`; sign and unit are part of the string (`+11.9¢`, `-$11.36`, `-0.61%`), never a separate glyph column.",
+        "section": "typography"
+      },
+      {
+        "name": "The Hairline Rule",
+        "body": "Surfaces meet on a 1px `hairline`; they are never separated by whitespace, shadow, or a change in radius.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do separate surfaces with a 1px `hairline` (or a 1px grid gap) and nothing else.",
+      "Do set every desk-scoped element's colour through `--c` and let dots, bars, glows, and words inherit it.",
+      "Do keep labels under 11px uppercase, 700–800 weight, tracked 0.10–0.14em (0.05em in Japanese).",
+      "Do put every number in tabular figures with its sign and unit inline, coloured green/red by sign.",
+      "Do use amber for paper, paused, and awaiting-approval states, red for live, loss, reject, and offline.",
+      "Do keep continuous motion inside the floor canvas; DOM changes transition in 150–400ms and honour `prefers-reduced-motion`.",
+      "Do head every panel with the pinned grammar: square · TITLE — subtitle · dots · right cell, 24px tall."
+    ],
+    "donts": [
+      "Don't round any rectangle; only dots, orbs, icons, and the core are circular.",
+      "Don't add resting box-shadows, gradients, or a second lift step to panels or cards; the drawer and the floor overlays are the only exceptions.",
+      "Don't introduce a light theme or a seventh pipeline colour.",
+      "Don't let type fall below 6px on canvas or 7px in the DOM, or drop the tracking on anything uppercase.",
+      "Don't add page-load choreography or motion outside the office floor.",
+      "Don't use third-party names, mascots, or handles; the core mark and BTC DESK are the only identity."
+    ]
+  }
+}
