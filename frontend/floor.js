@@ -4,7 +4,8 @@ window.Floor = (() => {
   const ANGLE = { spotter: -128, prior: -52, edge: 4, kelly: 56, taker: 128, closer: 184 };
   const COLOR = { spotter: "#22c993", prior: "#ff8a3d", edge: "#ff4f8f", kelly: "#9b6bff", taker: "#4a8dff", closer: "#ff5a3c" };
   const SHAPE = { spotter: "circle", prior: "circle", edge: "drop", kelly: "drop", taker: "circle", closer: "circle" };
-  const FONT = "Manrope, Segoe UI, system-ui, sans-serif";
+  const FONT = "Archivo, system-ui, sans-serif";
+  const L = (k) => (window.I18N ? window.I18N.t(k) : k);
   const EX = [0.87, 0.5], EY = [-0.87, 0.5];
   const reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -99,10 +100,10 @@ window.Floor = (() => {
       p1 = P(cx, cy, -span, i); p2 = P(cx, cy, span, i); ctx.beginPath(); ctx.moveTo(p1[0], p1[1]); ctx.lineTo(p2[0], p2[1]); ctx.stroke();
     }
     ctx.restore();
-    // office carpet: one iso rhombus under the whole ring of desks
-    const S = Math.min(W * 0.42, 520), Sy = S * 0.62;
-    poly([P(cx, cy + 10, -S, -Sy), P(cx, cy + 10, S, -Sy), P(cx, cy + 10, S, Sy), P(cx, cy + 10, -S, Sy)], "rgba(18,26,44,0.55)", "rgba(90,120,170,0.22)");
-    poly([P(cx, cy + 10, -S * 0.86, -Sy * 0.86), P(cx, cy + 10, S * 0.86, -Sy * 0.86), P(cx, cy + 10, S * 0.86, Sy * 0.86), P(cx, cy + 10, -S * 0.86, Sy * 0.86)], null, "rgba(90,120,170,0.12)");
+    // office carpet: one elliptical rug under the whole ring of desks
+    const S = Math.min(W * 0.46, 600), Sy = S * 0.42;
+    ellipse(cx, cy + 10, S, Sy, "rgba(18,26,44,0.55)", "rgba(90,120,170,0.22)");
+    ellipse(cx, cy + 10, S * 0.86, Sy * 0.86, null, "rgba(90,120,170,0.12)");
     // pit under the core
     const g = ctx.createRadialGradient(cx, cy + 14, 4, cx, cy + 14, 190);
     g.addColorStop(0, "rgba(58,96,190,0.32)"); g.addColorStop(0.5, "rgba(40,70,150,0.12)"); g.addColorStop(1, "rgba(40,70,150,0)");
@@ -117,20 +118,9 @@ window.Floor = (() => {
     ORDER.forEach((n) => {
       const d = desks[n], active = holder === n && coreState === "routing";
       ctx.save(); ctx.setLineDash([4, 5]); ctx.lineDashOffset = -(t * 0.03);
-      ctx.strokeStyle = active ? hexA(COLOR[n], 0.95) : "rgba(190,210,245,0.62)"; ctx.lineWidth = active ? 2 : 1.3;
+      ctx.strokeStyle = active ? hexA(COLOR[n], 0.9) : "rgba(190,210,245,0.42)"; ctx.lineWidth = active ? 1.8 : 1.2;
       ctx.beginPath(); ctx.moveTo(d.x, d.y + 6); ctx.quadraticCurveTo((d.x + cx) / 2, (d.y + cy) / 2 + 12, cx, cy + 14); ctx.stroke(); ctx.restore();
     });
-  }
-
-  function drawPlant(x, y, s) {
-    ctx.save();
-    poly([[x - 9 * s, y], [x + 9 * s, y], [x + 7 * s, y + 14 * s], [x - 7 * s, y + 14 * s]], "#151a24", "#242c3a");
-    ctx.strokeStyle = "#1f6b3a"; ctx.lineWidth = 2 * s; ctx.lineCap = "round";
-    for (let i = 0; i < 7; i++) {
-      const a = -Math.PI / 2 + (i - 3) * 0.32, L = (26 + (i % 2) * 8) * s;
-      ctx.beginPath(); ctx.moveTo(x, y); ctx.quadraticCurveTo(x + Math.cos(a) * L * 0.5, y + Math.sin(a) * L * 0.9, x + Math.cos(a) * L, y + Math.sin(a) * L * 0.55); ctx.stroke();
-    }
-    ctx.restore();
   }
 
   function drawDesk(n, t) {
@@ -191,7 +181,7 @@ window.Floor = (() => {
     ctx.strokeStyle = "#fff"; ctx.lineWidth = 2.6; ctx.lineCap = "round"; ctx.lineJoin = "round";
     drawGlyph(n, ox, oy);
     if (run) { ctx.beginPath(); ctx.arc(ox, oy, 23 + Math.sin(t * 0.006) * 2, 0, Math.PI * 2); ctx.strokeStyle = hexA(col, 0.5); ctx.lineWidth = 1; ctx.stroke(); }
-    if (deck) { text("ON DECK", ox, oy - 28, "#f5b942", 6, "center", 800, 0.16); }
+    if (deck) { text(L("fl_deck"), ox, oy - 28, "#f5b942", 6, "center", 800, 0.16); }
     // shadow of the orb on the desk
     ellipse(ox, y - 10, 10 - bob * 0.3, 3.8, "rgba(0,0,0,0.35)");
   }
@@ -230,7 +220,7 @@ window.Floor = (() => {
     const lw = 52;
     ctx.fillStyle = "rgba(5,7,11,0.85)"; ctx.fillRect(cx - lw / 2, cy + 22, lw, 12);
     ctx.strokeStyle = "#28313f"; ctx.strokeRect(cx - lw / 2 + 0.5, cy + 22.5, lw - 1, 11);
-    text("BTC CORE", cx, cy + 28.5, "#c7cfdb", 6.5, "center", 800, 0.16);
+    text(L("fl_core"), cx, cy + 28.5, "#c7cfdb", 6.5, "center", 800, 0.16);
     ellipse(ox, cy + 14, R * 0.7 - bob * 0.4, R * 0.26, "rgba(0,0,0,0.35)");
   }
 
@@ -271,7 +261,7 @@ window.Floor = (() => {
     // offline veil
     if (!online || performance.now() - lastTick > 15000) {
       ctx.fillStyle = "rgba(5,7,11,0.45)"; ctx.fillRect(0, 0, W, H);
-      text(online ? "WAITING FOR STATE" : "STREAM OFFLINE · RECONNECTING", W / 2, H * 0.5 + 70, "#ef4444", 8, "center", 800, 0.18);
+      text(L(online ? "fl_waiting" : "fl_offline"), W / 2, H * 0.5 + 70, "#ef4444", 8, "center", 800, 0.18);
     }
   }
 

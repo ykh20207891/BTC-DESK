@@ -69,7 +69,7 @@ async def patch_settings(patch: dict):
     except ValueError as e:
         raise HTTPException(400, str(e))
     if changed:
-        engine.log_event("core", "SYSTEM", None, "settings changed · " + ", ".join(changed))
+        engine.log_event("core", "SYSTEM", None, "settings changed · " + ", ".join(changed), key="settings", fields=", ".join(changed))
     return {"changed": changed, "settings": engine.s.public()}
 
 
@@ -78,13 +78,13 @@ async def control(body: dict):
     action = body.get("action")
     if action == "pause":
         engine.s.apply({"paused": True})
-        engine.log_event("core", "HOLD", None, "operator paused the swarm · open tickets still settle")
+        engine.log_event("core", "HOLD", None, "operator paused the swarm · open tickets still settle", key="op_pause")
     elif action == "resume":
         engine.s.apply({"paused": False})
-        engine.log_event("core", "SYSTEM", None, "operator resumed the swarm")
+        engine.log_event("core", "SYSTEM", None, "operator resumed the swarm", key="op_resume")
     elif action == "approvals":
         engine.s.apply({"approvals_only": bool(body.get("value"))})
-        engine.log_event("core", "SYSTEM", None, f"approvals-only {'on' if engine.s.approvals_only else 'off'}")
+        engine.log_event("core", "SYSTEM", None, f"approvals-only {'on' if engine.s.approvals_only else 'off'}", key="op_approvals", on=engine.s.approvals_only)
     elif action == "approve":
         msg = await engine.approve(str(body.get("ticket_id", "")))
         if msg != "ok":
@@ -100,7 +100,7 @@ async def control(body: dict):
             engine.s.apply({"mode": body.get("value")})
         except ValueError as e:
             raise HTTPException(400, str(e))
-        engine.log_event("core", "SYSTEM", None, f"mode set to {engine.s.mode} · restart the engine to switch the broker")
+        engine.log_event("core", "SYSTEM", None, f"mode set to {engine.s.mode} · restart the engine to switch the broker", key="op_mode", mode=engine.s.mode.upper())
     else:
         raise HTTPException(400, "unknown action")
     engine.dirty = True

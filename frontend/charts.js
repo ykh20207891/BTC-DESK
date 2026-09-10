@@ -5,7 +5,8 @@ window.Charts = (() => {
     muted: "#7d8798", dim: "#4d5666", line: "#151b26", line2: "#1e2633", edge: "#ff4f8f", kelly: "#9b6bff",
     spotter: "#22c993", prior: "#ff8a3d", closer: "#ff5a3c",
   };
-  const FONT = "Manrope, Segoe UI, system-ui, sans-serif";
+  const FONT = "Archivo, system-ui, sans-serif";
+  const L = (k, p) => (window.I18N ? window.I18N.t(k, p) : k);
 
   function fit(canvas) {
     const dpr = window.devicePixelRatio || 1;
@@ -32,7 +33,8 @@ window.Charts = (() => {
   /* ---------- sparkline ---------- */
   function spark(canvas, data, color, opts = {}) {
     const { ctx, w, h } = fit(canvas);
-    if (!data || data.length < 2) return;
+    if (!data || !data.length) return;
+    if (data.length === 1) data = [data[0], data[0]];
     let lo = Math.min(...data), hi = Math.max(...data);
     if (opts.min != null) lo = Math.min(lo, opts.min);
     if (opts.max != null) hi = Math.max(hi, opts.max);
@@ -59,7 +61,7 @@ window.Charts = (() => {
     const { ctx, w, h } = fit(canvas);
     if (!hist || hist.length < 2) {
       ctx.setLineDash([2, 3]); ctx.strokeStyle = C.line2; ctx.beginPath(); ctx.moveTo(0, h / 2); ctx.lineTo(w, h / 2); ctx.stroke(); ctx.setLineDash([]);
-      label(ctx, "BALANCE HISTORY STARTS WITH THE FIRST TICK", 6, h / 2 - 10, C.dim, 7);
+      label(ctx, L("ch_history_empty"), 6, h / 2 - 10, C.dim, 7);
       return;
     }
     const vals = hist.map((p) => p[1]);
@@ -73,7 +75,7 @@ window.Charts = (() => {
     const col = last >= seed ? C.up : C.down;
     // seed line
     ctx.setLineDash([2, 3]); ctx.strokeStyle = C.line2; ctx.beginPath(); ctx.moveTo(0, Y(seed)); ctx.lineTo(w - padR, Y(seed)); ctx.stroke(); ctx.setLineDash([]);
-    label(ctx, "SEED " + fmt(seed), w - padR + 4, Y(seed), C.dim, 7);
+    label(ctx, L("ch_seed") + " " + fmt(seed), w - padR + 4, Y(seed), C.dim, 7);
     const g = ctx.createLinearGradient(0, 0, 0, h);
     g.addColorStop(0, hexA(col, 0.35)); g.addColorStop(1, hexA(col, 0));
     ctx.beginPath(); ctx.moveTo(X(0), h);
@@ -110,7 +112,7 @@ window.Charts = (() => {
   }
   function candles(canvas, rows, opts = {}) {
     const { ctx, w, h } = fit(canvas);
-    if (!rows || rows.length < 5) { label(ctx, "WAITING FOR THE TAPE", 10, h / 2, C.dim, 8); return; }
+    if (!rows || rows.length < 5) { label(ctx, L("ch_wait_tape"), 10, h / 2, C.dim, 8); return; }
     const axisW = 56, top = 10, volH = Math.round(h * 0.18), bottom = 14;
     const plotW = w - axisW, plotH = h - top - volH - bottom;
     const cw = 5, n = Math.min(rows.length, Math.floor(plotW / cw));
@@ -156,7 +158,7 @@ window.Charts = (() => {
     // vwap
     ctx.beginPath(); vwap.forEach((v, i) => (i ? ctx.lineTo(X(i), Y(v)) : ctx.moveTo(X(i), Y(v))));
     ctx.strokeStyle = C.taker; ctx.lineWidth = 1.5; ctx.stroke();
-    label(ctx, "VWAP " + fmt(vwap[n - 1]), X(n - 1) - 4, Y(vwap[n - 1]) + 9, C.taker, 7, "right");
+    label(ctx, L("ch_vwap") + " " + fmt(vwap[n - 1]), X(n - 1) - 4, Y(vwap[n - 1]) + 9, C.taker, 7, "right");
     // ticket markers
     const t0 = data[0][0], t1 = data[n - 1][0] + 60000;
     let signals = 0;
@@ -178,7 +180,7 @@ window.Charts = (() => {
         if (t.tp) { ctx.strokeStyle = hexA(C.up, 0.5); ctx.beginPath(); ctx.moveTo(x, Y(t.tp)); ctx.lineTo(plotW, Y(t.tp)); ctx.stroke(); }
         ctx.setLineDash([]);
         const nearEdge = x > plotW - 110;
-        labels.push({ x: nearEdge ? x - 6 : x + 6, y: Y(t.entry) - 7, text: (upT ? "LONG " : "SHORT ") + t.qty + " BTC", align: nearEdge ? "right" : "left" });
+        labels.push({ x: nearEdge ? x - 6 : x + 6, y: Y(t.entry) - 7, text: L(upT ? "ch_long" : "ch_short") + " " + t.qty + " BTC", align: nearEdge ? "right" : "left" });
       }
     });
     labels.sort((a, b) => a.y - b.y);
@@ -205,7 +207,7 @@ window.Charts = (() => {
     // NOW divider
     ctx.strokeStyle = hexA(C.amber, 0.7); ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
     ctx.beginPath(); ctx.moveTo(split + 0.5, top - 6); ctx.lineTo(split + 0.5, h - 2); ctx.stroke(); ctx.setLineDash([]);
-    if (!an || !an.ready || !an.now || !an.now.length) { label(ctx, "SCANNING HISTORY FOR THIS SHAPE", 10, h / 2, C.dim, 8); return; }
+    if (!an || !an.ready || !an.now || !an.now.length) { label(ctx, L("ch_scanning"), 10, h / 2, C.dim, 8); return; }
     // left: z-scored windows
     const priors = an.priors || [];
     const allZ = [...an.now, ...priors.flat()];
@@ -246,11 +248,11 @@ window.Charts = (() => {
       ctx.strokeStyle = C.amber; ctx.lineWidth = 2; ctx.stroke();
       const ex = RX(med.length - 1, med.length), ey = RY(med[med.length - 1]);
       ctx.beginPath(); ctx.arc(ex, ey, 2.5, 0, Math.PI * 2); ctx.fillStyle = C.amber; ctx.fill();
-      label(ctx, "MEDIAN " + (med[med.length - 1] >= 0 ? "+" : "") + med[med.length - 1].toFixed(2) + "%", ex - 4, ey - 9, C.amber, 7, "right");
+      label(ctx, L("ch_median") + " " + (med[med.length - 1] >= 0 ? "+" : "") + med[med.length - 1].toFixed(2) + "%", ex - 4, ey - 9, C.amber, 7, "right");
     }
     label(ctx, "+" + rhi.toFixed(2) + "%", w - 8, top + 4, C.dim, 7, "right");
     label(ctx, rlo.toFixed(2) + "%", w - 8, h - bottom - 4, C.dim, 7, "right");
-    label(ctx, "+" + (an.horizon || 24) + " BARS", split + 8, h - 6, C.dim, 7);
+    label(ctx, L("ch_bars", { n: an.horizon || 24 }), split + 8, h - 6, C.dim, 7);
   }
 
   /* ---------- model vs book bell ---------- */
@@ -279,8 +281,8 @@ window.Charts = (() => {
     const bw = (bid / tot) * w, mid = Math.round(h / 2);
     ctx.fillStyle = hexA(C.up, 0.8); ctx.fillRect(0, mid - 3, bw - 1, 6);
     ctx.fillStyle = hexA(C.down, 0.8); ctx.fillRect(bw + 1, mid - 3, w - bw - 1, 6);
-    label(ctx, "BID " + bid.toFixed(1), 0, mid - 9, C.up, 6);
-    label(ctx, ask.toFixed(1) + " ASK", w, mid - 9, C.down, 6, "right");
+    label(ctx, L("ch_bid") + " " + bid.toFixed(1), 0, mid - 9, C.up, 6);
+    label(ctx, ask.toFixed(1) + " " + L("ch_ask"), w, mid - 9, C.down, 6, "right");
     label(ctx, ((bid / tot) * 100).toFixed(0) + "%", 0, mid + 10, C.dim, 6);
     label(ctx, ((ask / tot) * 100).toFixed(0) + "%", w, mid + 10, C.dim, 6, "right");
   }

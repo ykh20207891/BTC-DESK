@@ -96,12 +96,13 @@ class Engine:
     # ------------------------------------------------------------------ lifecycle
     async def start(self):
         sym = self.s.symbol
-        self.log_event("core", "SYSTEM", None, f"desk booting · {self.s.mode.upper()} mode · {sym} 15M · {'testnet' if self.s.testnet else 'mainnet'} data")
+        net = "testnet" if self.s.testnet else "mainnet"
+        self.log_event("core", "SYSTEM", None, f"desk booting · {self.s.mode.upper()} mode · {sym} 15M · {net} data", key="boot", mode=self.s.mode.upper(), sym=sym, net=net)
         try:
             inst = await self.rest.instrument(sym)
             self.lot = float(inst["lotSizeFilter"]["qtyStep"])
         except Exception as e:
-            self.log_event("core", "SYSTEM", None, f"instrument lookup failed · {e}")
+            self.log_event("core", "SYSTEM", None, f"instrument lookup failed · {e}", key="inst_fail", err=str(e))
         try:
             for row in await self.rest.klines_history(sym, "1", 3000):
                 self.candles_1m.append(row)
@@ -111,9 +112,9 @@ class Engine:
             ob = await self.rest.orderbook(sym, 50)
             self.bids = {float(p): float(q) for p, q in ob["b"]}
             self.asks = {float(p): float(q) for p, q in ob["a"]}
-            self.log_event("spotter", "SCAN", None, f"loaded {len(self.candles_1m):,} 1m bars · {len(self.candles_15m)} 15m bars · book {len(self.bids)}×{len(self.asks)}")
+            self.log_event("spotter", "SCAN", None, f"loaded {len(self.candles_1m):,} 1m bars · {len(self.candles_15m)} 15m bars · book {len(self.bids)}×{len(self.asks)}", key="loaded", n1=f"{len(self.candles_1m):,}", n15=len(self.candles_15m), b=len(self.bids), a=len(self.asks))
         except Exception as e:
-            self.log_event("core", "SYSTEM", None, f"history load failed · {e}")
+            self.log_event("core", "SYSTEM", None, f"history load failed · {e}", key="hist_fail", err=str(e))
         self._last_bar_ts = self.candles_15m[-1][0] if self.candles_15m else 0
         self.ws = BybitPublicWS(
             [f"kline.1.{sym}", f"kline.15.{sym}", f"tickers.{sym}", f"orderbook.50.{sym}", f"publicTrade.{sym}"],
@@ -139,7 +140,7 @@ class Engine:
     # ------------------------------------------------------------------ websocket in
     def on_ws_status(self, ok: bool):
         self.online = ok
-        self.log_event("core", "SYSTEM", None, "stream connected · swarm online" if ok else "stream lost · reconnecting")
+        self.log_event("core", "SYSTEM", None, "stream connected · swarm online" if ok else "stream lost · reconnecting", key="stream_on" if ok else "stream_off")
         self.dirty = True
 
     def on_ws(self, msg: dict):
@@ -194,7 +195,7 @@ class Engine:
                 await self._mark_book()
                 await self._closer_check()
             except Exception as e:
-                self.log_event("core", "SYSTEM", None, f"tick error · {e}")
+                self.log_event("core", "SYSTEM", None, f"tick error · {e}", key="err", what="tick", err=str(e))
             self.dirty = True
             await asyncio.sleep(1.0)
 
@@ -207,7 +208,7 @@ class Engine:
                 self._research_note(n)
                 n += 1
             except Exception as e:
-                self.log_event("core", "SYSTEM", None, f"rescan error · {e}")
+                self.log_event("core", "SYSTEM", None, f"rescan error · {e}", key="err", what="rescan", err=str(e))
             self.dirty = True
             await asyncio.sleep(self.s.rescan_interval_s)
 
@@ -331,11 +332,11 @@ class Engine:
             self.day, self.day_peak = today, self.equity
             if self.halted:
                 self.halted = False
-                self.log_event("closer", "GUARD", None, "new UTC day · drawdown guard reset · desk reopened")
+                self.log_event("closer", "GUARD", None, "new UTC day · drawdown guard reset · desk reopened", key="guard_reset")
         self.day_peak = max(self.day_peak, self.equity)
         if self.dd_now() >= self.s.risk.daily_drawdown_guard and not self.halted:
             self.halted = True
-            self.log_event("closer", "GUARD", None, f"drawdown guard hit {self.dd_now()*100:.2f}% · no new tickets until next UTC day")
+            self.log_event("closer", "GUARD", None, f"drawdown guard hit {self.dd_now()*100:.2f}% · no new tickets until next UTC day", key="guard_hit", dd=f"{self.dd_now()*100:.2f}%")
         now = _now()
         if now - self._last_eq_persist >= 15:
             self._last_eq_persist = now
@@ -376,7 +377,7 @@ class Engine:
             fill, pnl = await self.broker.close(pos, mark)
         except Exception as e:
             self.positions[tid] = pos
-            self.log_event("closer", "SETTLE", None, f"close failed · {e}")
+            self.log_event("closer", "SETTLE", None, f"close failed · {e}", key="close_fail", err=str(e))
             self._desk_state("closer", "idle", 0)
             return
         t.update({"status": "settled", "exit": round(fill, 2), "pnl": round(pnl, 2), "settled": _now(), "reason": reason, "stage": 5})
@@ -386,6 +387,7 @@ class Engine:
         self.log_event(
             "closer", "SETTLE", _fmt_money(pnl),
             f"settled BTC {t['direction']} 15M · {reason} · exit ${fill:,.1f} · book {st['wins']}W {st['losses']}L",
+            key="settled", dir=t["direction"], reason=reason, exit=f"${fill:,.1f}", w=st["wins"], l=st["losses"],
         )
         self._handoff()
         self._desk_state("closer", "done", 1.0)
@@ -409,6 +411,7 @@ class Engine:
             "win_rate": wins / len(settled) if settled else 0.0, "avg_edge": round(avg_edge, 2),
             "max_dd": round(mdd, 4), "last_pnl": last["pnl"] if last else 0.0,
             "last_label": f"SETTLED BTC {last['direction']} 15M" if last else "NO SETTLEMENT YET",
+            "last_dir": last["direction"] if last else None,
             "away_pnl": round(away, 2),
         }
 
@@ -445,14 +448,14 @@ class Engine:
             if name != "closer":
                 self._desk_state(name, "idle", 0.0)
         if s.paused:
-            self.log_event("core", "HOLD", None, f"{reason} · swarm paused · no ticket cut")
+            self.log_event("core", "HOLD", None, f"{reason} · swarm paused · no ticket cut", key="hold_paused", reason=reason)
             return
         if self.halted:
-            self.log_event("closer", "GUARD", None, f"{reason} · drawdown guard active · no ticket cut")
+            self.log_event("closer", "GUARD", None, f"{reason} · drawdown guard active · no ticket cut", key="hold_guard", reason=reason)
             return
         open_n = sum(1 for t in self.tickets.values() if t["status"] in ("open", "on_deck", "routing"))
         if open_n >= s.risk.max_open_tickets:
-            self.log_event("kelly", "HOLD", None, f"{reason} · {open_n} tickets open · at cap")
+            self.log_event("kelly", "HOLD", None, f"{reason} · {open_n} tickets open · at cap", key="hold_cap", reason=reason, n=open_n)
             return
         tid = uuid.uuid4().hex[:8]
         bar_start = self._last_bar_ts or int(_now() * 1000 // BAR_MS * BAR_MS)
@@ -468,9 +471,11 @@ class Engine:
         await self._dwell("spotter")
         f = self.features
         m = self.market
+        side = "above" if f.vwap_dist_pct >= 0 else "below"
         self.log_event(
             "spotter", "SCAN", None,
-            f"ticket {tid} cut · RSI14 {m['rsi14']:.1f} · {'above' if f.vwap_dist_pct >= 0 else 'below'} VWAP {abs(f.vwap_dist_pct):.2f}% · z {f.z:+.2f} · vol z {f.vol_z:+.1f}",
+            f"ticket {tid} cut · RSI14 {m['rsi14']:.1f} · {side} VWAP {abs(f.vwap_dist_pct):.2f}% · z {f.z:+.2f} · vol z {f.vol_z:+.1f}",
+            key="scan", tid=tid, rsi=f"{m['rsi14']:.1f}", side=side, vwap=f"{abs(f.vwap_dist_pct):.2f}%", z=f"{f.z:+.2f}", volz=f"{f.vol_z:+.1f}",
         )
         t.update({"features": f.dict()})
         self._desk_state("spotter", "done", 1.0)
@@ -484,6 +489,7 @@ class Engine:
         self.log_event(
             "prior", "PRICE", f"{p_up*100:.0f}¢",
             f"model fair {p_up*100:.1f}¢ UP · analog {an.get('up',0)}↑ {an.get('down',0)}↓ match {an.get('match',0):.2f} · momentum {self.model['contrib']['momentum']:+.2f}",
+            key="price", p=f"{p_up*100:.1f}¢", up=an.get("up", 0), down=an.get("down", 0), match=f"{an.get('match',0):.2f}", mom=f"{self.model['contrib']['momentum']:+.2f}",
         )
         t.update({"p_model": p_up, "contrib": self.model["contrib"]})
         self._desk_state("prior", "done", 1.0)
@@ -501,12 +507,13 @@ class Engine:
             self.log_event(
                 "edge", "PASS", f"{edge_c:+.1f}¢",
                 f"{direction} edge {edge_c:+.1f}¢ vs book {p_mkt*100:.0f}¢ · below {s.risk.min_edge_cents:.1f}¢ floor · ticket passed",
+                key="edge_pass", dir=direction, edge=f"{edge_c:+.1f}¢", book=f"{p_mkt*100:.0f}¢", floor=f"{s.risk.min_edge_cents:.1f}¢",
             )
             t.update({"status": "passed", "settled": _now(), "pnl": 0.0})
             self.store.save_ticket(t)
             self._reset_desks()
             return
-        self.log_event("edge", "EDGE", f"{edge_c:+.1f}¢", f"{direction} · model {p_up*100:.1f}¢ vs book {p_mkt*100:.1f}¢ · edge cleared the floor")
+        self.log_event("edge", "EDGE", f"{edge_c:+.1f}¢", f"{direction} · model {p_up*100:.1f}¢ vs book {p_mkt*100:.1f}¢ · edge cleared the floor", key="edge_ok", dir=direction, p=f"{p_up*100:.1f}¢", book=f"{p_mkt*100:.1f}¢")
 
         # 04 KELLY — sizing
         self.holder, self.stage, t["stage"] = "kelly", 3, 3
@@ -519,7 +526,7 @@ class Engine:
         self._desk_state("kelly", "done", 1.0)
         self._handoff()
         if kz["qty"] <= 0:
-            self.log_event("kelly", "PASS", "$0", f"size rounds to zero at ${mark:,.0f} · f* {kz['f_star']:.3f} · ticket passed")
+            self.log_event("kelly", "PASS", "$0", f"size rounds to zero at ${mark:,.0f} · f* {kz['f_star']:.3f} · ticket passed", key="size_zero", mark=f"${mark:,.0f}", f=f"{kz['f_star']:.3f}")
             t.update({"status": "passed", "settled": _now(), "pnl": 0.0})
             self.store.save_ticket(t)
             self._reset_desks()
@@ -527,6 +534,7 @@ class Engine:
         self.log_event(
             "kelly", "SIZE", f"${kz['notional']:,.0f}",
             f"{kz['qty']} BTC · half-Kelly f {kz['f']:.3f} · cap by {kz['binding']} · drawdown guard {notch}/10 · {'full size' if notch == 0 else f'size cut {notch} notch'}",
+            key="size", qty=kz["qty"], f=f"{kz['f']:.3f}", binding=kz["binding"], notch=notch,
         )
 
         # 05 TAKER — execution
@@ -534,7 +542,7 @@ class Engine:
         if s.approvals_only:
             t["status"] = "on_deck"
             self._desk_state("taker", "on_deck", 0.0, "awaiting approval")
-            self.log_event("taker", "HOLD", None, f"ticket {tid} on deck · human approval required · {direction} {kz['qty']} BTC")
+            self.log_event("taker", "HOLD", None, f"ticket {tid} on deck · human approval required · {direction} {kz['qty']} BTC", key="deck", tid=tid, dir=direction, qty=kz["qty"])
             self.store.save_ticket(t)
             return
         await self._execute(t)
@@ -546,10 +554,10 @@ class Engine:
         if _now() * 1000 >= t["horizon_ts"]:
             t.update({"status": "expired", "settled": _now(), "pnl": 0.0})
             self.store.save_ticket(t)
-            self.log_event("taker", "PASS", None, f"ticket {tid} expired before approval")
+            self.log_event("taker", "PASS", None, f"ticket {tid} expired before approval", key="expired", tid=tid)
             self._reset_desks()
             return "ticket expired"
-        self.log_event("core", "SYSTEM", None, f"ticket {tid} approved by operator")
+        self.log_event("core", "SYSTEM", None, f"ticket {tid} approved by operator", key="approved", tid=tid)
         await self._execute(t)
         return "ok"
 
@@ -559,7 +567,7 @@ class Engine:
             return "ticket is not on deck"
         t.update({"status": "rejected", "settled": _now(), "pnl": 0.0})
         self.store.save_ticket(t)
-        self.log_event("core", "SYSTEM", None, f"ticket {tid} rejected by operator")
+        self.log_event("core", "SYSTEM", None, f"ticket {tid} rejected by operator", key="rejected", tid=tid)
         self._reset_desks()
         return "ok"
 
@@ -575,7 +583,7 @@ class Engine:
         try:
             pos = await self.broker.open(tid, direction, qty, mark, round(sl, 1), round(tp, 1))
         except Exception as e:
-            self.log_event("taker", "FILL", None, f"order failed · {e}")
+            self.log_event("taker", "FILL", None, f"order failed · {e}", key="order_fail", err=str(e))
             t.update({"status": "failed", "settled": _now(), "pnl": 0.0, "error": str(e)})
             self.store.save_ticket(t)
             self._reset_desks()
@@ -587,6 +595,7 @@ class Engine:
         self.log_event(
             "taker", "FILL", f"${pos.entry * qty:,.0f}",
             f"{'bought' if direction == 'UP' else 'sold'} {qty} BTC at ${pos.entry:,.1f} · sl ${sl:,.0f} · tp ${tp:,.0f} · {self.broker.name}",
+            key="fill", dir=direction, qty=qty, entry=f"${pos.entry:,.1f}", sl=f"${sl:,.0f}", tp=f"${tp:,.0f}", broker=self.broker.name,
         )
         self._desk_state("taker", "done", 1.0)
         self._handoff()
@@ -604,18 +613,31 @@ class Engine:
         if not self.market:
             return
         m, f, an = self.market, self.features, self.analog_state
+        unreal = _fmt_money(sum(t.get("unrealized", 0) for t in self.tickets.values() if t["status"] == "open"))
+        binding = self.model.get("kelly", {}).get("binding", "-")
         notes = [
-            ("spotter", "RESEARCH", None, f"rescan · {len(self.candles_1m):,} 1m bars · vol z {f.vol_z:+.2f} · atr {f.atr_pct:.2f}%"),
-            ("prior", "RESEARCH", None, f"analog scan {an.get('scanned', 0):,} windows · best dtw {an.get('dtw', 0):.3f} · {an.get('up', 0)}↑ {an.get('down', 0)}↓ over {an.get('horizon', 24)} bars"),
-            ("edge", "RESEARCH", None, f"book imbalance {m['imbalance']:+.3f} over 50 levels · spread ${m['spread']:.2f} · funding {m['funding']*100:+.4f}%"),
-            ("kelly", "RESEARCH", None, f"drawdown {self.dd_now()*100:.2f}% of {self.s.risk.daily_drawdown_guard*100:.1f}% guard · notch {self.dd_notch()}/10 · cap by {self.model.get('kelly', {}).get('binding', '-')}"),
-            ("taker", "RESEARCH", None, f"mark ${m['mark']:,.1f} · index ${m['index']:,.1f} · oi {m['oi']:,.0f} BTC"),
-            ("closer", "RESEARCH", None, f"{len(self.positions)} open · unrealized {_fmt_money(sum(t.get('unrealized', 0) for t in self.tickets.values() if t['status']=='open'))}"),
+            ("spotter", "RESEARCH", None, f"rescan · {len(self.candles_1m):,} 1m bars · vol z {f.vol_z:+.2f} · atr {f.atr_pct:.2f}%",
+             dict(key="r_spotter", n=f"{len(self.candles_1m):,}", volz=f"{f.vol_z:+.2f}", atr=f"{f.atr_pct:.2f}%")),
+            ("prior", "RESEARCH", None, f"analog scan {an.get('scanned', 0):,} windows · best dtw {an.get('dtw', 0):.3f} · {an.get('up', 0)}↑ {an.get('down', 0)}↓ over {an.get('horizon', 24)} bars",
+             dict(key="r_prior", n=f"{an.get('scanned', 0):,}", dtw=f"{an.get('dtw', 0):.3f}", up=an.get("up", 0), down=an.get("down", 0), h=an.get("horizon", 24))),
+            ("edge", "RESEARCH", None, f"book imbalance {m['imbalance']:+.3f} over 50 levels · spread ${m['spread']:.2f} · funding {m['funding']*100:+.4f}%",
+             dict(key="r_edge", imb=f"{m['imbalance']:+.3f}", spread=f"${m['spread']:.2f}", funding=f"{m['funding']*100:+.4f}%")),
+            ("kelly", "RESEARCH", None, f"drawdown {self.dd_now()*100:.2f}% of {self.s.risk.daily_drawdown_guard*100:.1f}% guard · notch {self.dd_notch()}/10 · cap by {binding}",
+             dict(key="r_kelly", dd=f"{self.dd_now()*100:.2f}%", guard=f"{self.s.risk.daily_drawdown_guard*100:.1f}%", notch=self.dd_notch(), binding=binding)),
+            ("taker", "RESEARCH", None, f"mark ${m['mark']:,.1f} · index ${m['index']:,.1f} · oi {m['oi']:,.0f} BTC",
+             dict(key="r_taker", mark=f"${m['mark']:,.1f}", index=f"${m['index']:,.1f}", oi=f"{m['oi']:,.0f}")),
+            ("closer", "RESEARCH", None, f"{len(self.positions)} open · unrealized {unreal}",
+             dict(key="r_closer", n=len(self.positions), unreal=unreal)),
         ]
-        self.log_event(*notes[n % len(notes)])
+        agent, action, amount, text, kw = notes[n % len(notes)]
+        self.log_event(agent, action, amount, text, **kw)
 
-    def log_event(self, agent: str, action: str, amount: str | None, text: str):
+    def log_event(self, agent: str, action: str, amount: str | None, text: str, key: str | None = None, **p):
+        """English text is the record; `key` + params let the UI re-render the line in another language."""
         e = {"ts": _now(), "agent": agent, "action": action, "amount": amount, "text": text}
+        if key:
+            e["key"] = key
+            e["p"] = p
         self.log.append(e)
         try:
             self.store.add_log(e)

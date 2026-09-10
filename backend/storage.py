@@ -17,12 +17,17 @@ class Storage:
             """
             CREATE TABLE IF NOT EXISTS tickets (id TEXT PRIMARY KEY, created REAL, status TEXT, body TEXT);
             CREATE TABLE IF NOT EXISTS equity (ts REAL, equity REAL);
-            CREATE TABLE IF NOT EXISTS log (ts REAL, agent TEXT, action TEXT, amount TEXT, text TEXT);
+            CREATE TABLE IF NOT EXISTS log (ts REAL, agent TEXT, action TEXT, amount TEXT, text TEXT, key TEXT, params TEXT);
             CREATE TABLE IF NOT EXISTS kv (key TEXT PRIMARY KEY, value TEXT);
             CREATE INDEX IF NOT EXISTS ix_equity_ts ON equity(ts);
             CREATE INDEX IF NOT EXISTS ix_log_ts ON log(ts);
             """
         )
+        for col in ("key TEXT", "params TEXT"):
+            try:
+                self.db.execute(f"ALTER TABLE log ADD COLUMN {col}")
+            except sqlite3.OperationalError:
+                pass
 
     # ---- tickets ----
     def save_ticket(self, t: dict) -> None:
@@ -51,18 +56,27 @@ class Storage:
     def add_log(self, e: dict) -> None:
         with self._lock:
             self.db.execute(
-                "INSERT INTO log (ts, agent, action, amount, text) VALUES (?,?,?,?,?)",
-                (e["ts"], e["agent"], e["action"], e.get("amount"), e["text"]),
+                "INSERT INTO log (ts, agent, action, amount, text, key, params) VALUES (?,?,?,?,?,?,?)",
+                (e["ts"], e["agent"], e["action"], e.get("amount"), e["text"], e.get("key"),
+                 json.dumps(e.get("p") or {}) if e.get("key") else None),
             )
             self.db.commit()
 
     def load_log(self, limit: int = 120) -> list[dict]:
         rows = self.db.execute(
-            "SELECT ts, agent, action, amount, text FROM log ORDER BY ts DESC LIMIT ?", (limit,)
+            "SELECT ts, agent, action, amount, text, key, params FROM log ORDER BY ts DESC LIMIT ?", (limit,)
         ).fetchall()
-        return [
-            {"ts": r[0], "agent": r[1], "action": r[2], "amount": r[3], "text": r[4]} for r in reversed(rows)
-        ]
+        out = []
+        for r in reversed(rows):
+            e = {"ts": r[0], "agent": r[1], "action": r[2], "amount": r[3], "text": r[4]}
+            if r[5]:
+                e["key"] = r[5]
+                try:
+                    e["p"] = json.loads(r[6] or "{}")
+                except Exception:
+                    e["p"] = {}
+            out.append(e)
+        return out
 
     # ---- kv ----
     def get(self, key: str, default=None):
