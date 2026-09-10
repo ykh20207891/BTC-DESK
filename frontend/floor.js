@@ -8,7 +8,7 @@ window.Floor = (() => {
   const EX = [0.87, 0.5], EY = [-0.87, 0.5];
   const reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  let canvas, ctx, W = 0, H = 0, dpr = 1, raf = 0, t0 = performance.now();
+  let canvas, ctx, W = 0, H = 0, dpr = 1, scale = 1, realW = 0, raf = 0, t0 = performance.now();
   const desks = {};      // name -> {x,y,state,progress,history,pulse}
   const flights = [];    // {from,to,color,t0,dur,pnl}
   const particles = [];
@@ -31,14 +31,16 @@ window.Floor = (() => {
   function resize() {
     const r = canvas.parentElement.getBoundingClientRect();
     dpr = window.devicePixelRatio || 1;
-    W = Math.max(1, Math.round(r.width)); H = Math.max(1, Math.round(r.height));
-    canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
-    canvas.style.width = W + "px"; canvas.style.height = H + "px";
+    realW = Math.max(1, Math.round(r.width)); const realH = Math.max(1, Math.round(r.height));
+    canvas.width = Math.round(realW * dpr); canvas.height = Math.round(realH * dpr);
+    canvas.style.width = realW + "px"; canvas.style.height = realH + "px";
+    scale = realW < 620 ? 0.74 : 1;            // phones: draw the same office smaller
+    W = realW / scale; H = realH / scale;
     layout();
   }
 
   function layout() {
-    const cx = W / 2, cy = H * 0.5, rx = Math.min(W * 0.36, 430), ry = Math.min(H * 0.31, 150);
+    const cx = W / 2, cy = H * 0.5, rx = Math.min(W * 0.37, 470), ry = Math.min(H * 0.31, 150);
     ORDER.forEach((n) => { const a = (ANGLE[n] * Math.PI) / 180; desks[n].x = cx + Math.cos(a) * rx; desks[n].y = cy + Math.sin(a) * ry; });
   }
 
@@ -90,13 +92,17 @@ window.Floor = (() => {
   function drawFloor(t) {
     const cx = W / 2, cy = H * 0.5;
     // iso grid
-    ctx.save(); ctx.strokeStyle = "rgba(90,120,170,0.07)"; ctx.lineWidth = 1;
+    ctx.save(); ctx.strokeStyle = "rgba(90,120,170,0.13)"; ctx.lineWidth = 1;
     const step = 34, span = Math.max(W, H) * 1.6;
     for (let i = -span; i <= span; i += step) {
       let p1 = P(cx, cy, i, -span), p2 = P(cx, cy, i, span); ctx.beginPath(); ctx.moveTo(p1[0], p1[1]); ctx.lineTo(p2[0], p2[1]); ctx.stroke();
       p1 = P(cx, cy, -span, i); p2 = P(cx, cy, span, i); ctx.beginPath(); ctx.moveTo(p1[0], p1[1]); ctx.lineTo(p2[0], p2[1]); ctx.stroke();
     }
     ctx.restore();
+    // office carpet: one iso rhombus under the whole ring of desks
+    const S = Math.min(W * 0.42, 520), Sy = S * 0.62;
+    poly([P(cx, cy + 10, -S, -Sy), P(cx, cy + 10, S, -Sy), P(cx, cy + 10, S, Sy), P(cx, cy + 10, -S, Sy)], "rgba(18,26,44,0.55)", "rgba(90,120,170,0.22)");
+    poly([P(cx, cy + 10, -S * 0.86, -Sy * 0.86), P(cx, cy + 10, S * 0.86, -Sy * 0.86), P(cx, cy + 10, S * 0.86, Sy * 0.86), P(cx, cy + 10, -S * 0.86, Sy * 0.86)], null, "rgba(90,120,170,0.12)");
     // pit under the core
     const g = ctx.createRadialGradient(cx, cy + 14, 4, cx, cy + 14, 190);
     g.addColorStop(0, "rgba(58,96,190,0.32)"); g.addColorStop(0.5, "rgba(40,70,150,0.12)"); g.addColorStop(1, "rgba(40,70,150,0)");
@@ -110,8 +116,8 @@ window.Floor = (() => {
     // routes desk -> core
     ORDER.forEach((n) => {
       const d = desks[n], active = holder === n && coreState === "routing";
-      ctx.save(); ctx.setLineDash([3, 6]); ctx.lineDashOffset = -(t * 0.03);
-      ctx.strokeStyle = active ? hexA(COLOR[n], 0.55) : "rgba(110,150,230,0.14)"; ctx.lineWidth = active ? 1.5 : 1;
+      ctx.save(); ctx.setLineDash([4, 5]); ctx.lineDashOffset = -(t * 0.03);
+      ctx.strokeStyle = active ? hexA(COLOR[n], 0.95) : "rgba(190,210,245,0.62)"; ctx.lineWidth = active ? 2 : 1.3;
       ctx.beginPath(); ctx.moveTo(d.x, d.y + 6); ctx.quadraticCurveTo((d.x + cx) / 2, (d.y + cy) / 2 + 12, cx, cy + 14); ctx.stroke(); ctx.restore();
     });
   }
@@ -138,17 +144,23 @@ window.Floor = (() => {
       g.addColorStop(0, hexA(col, a)); g.addColorStop(1, hexA(col, 0));
       ellipse(x, y + 12, 74, 30, g);
     }
+    // chair behind the desk, cabinet beside it
+    isoBox(x - 30, y - 24, 16, 14, 9, "#232b3a", "#131924", "#1a2130", "#2c3646");
+    ctx.fillStyle = "#1c2331"; ctx.fillRect(x - 41, y - 42, 14, 14);
+    isoBox(x + 44, y + 2, 14, 12, 20, "#1f2735", "#10151e", "#161c28", "#2a3444");
+    ctx.fillStyle = "#3a4557"; ctx.fillRect(x + 40, y + 10, 8, 1.5); ctx.fillRect(x + 40, y + 16, 8, 1.5);
     // desk
-    isoBox(x, y, 60, 36, 13, "#1b2231", "#0f141d", "#141a26", "#28313f");
-    // papers on the desk
-    poly([P(x, y, -14, 2), P(x, y, -4, 2), P(x, y, -4, 12), P(x, y, -14, 12)], "#cfd6e2");
-    poly([P(x, y, -12, -2), P(x, y, -2, -2), P(x, y, -2, 8), P(x, y, -12, 8)], "#e7ebf2");
+    isoBox(x, y, 78, 46, 16, "#1b2231", "#0f141d", "#141a26", "#28313f");
+    // papers and a mug on the desk
+    poly([P(x, y, -20, 4), P(x, y, -8, 4), P(x, y, -8, 16), P(x, y, -20, 16)], "#cfd6e2");
+    poly([P(x, y, -17, -1), P(x, y, -5, -1), P(x, y, -5, 11), P(x, y, -17, 11)], "#e7ebf2");
+    ctx.fillStyle = "#2a3444"; ctx.fillRect(P(x, y, 22, 14)[0] - 2, P(x, y, 22, 14)[1] - 5, 5, 5);
     // monitor
-    const mx = x + 6, my = y - 24, mw = 30, mh = 18;
+    const mx = x + 8, my = y - 30, mw = 38, mh = 22;
     ctx.fillStyle = "#0a0f17"; ctx.fillRect(mx - mw / 2, my - mh / 2, mw, mh);
     ctx.save(); ctx.shadowColor = col; ctx.shadowBlur = run ? 16 : 6;
     ctx.strokeStyle = hexA(col, run ? 0.9 : 0.45); ctx.lineWidth = 1; ctx.strokeRect(mx - mw / 2 + 0.5, my - mh / 2 + 0.5, mw - 1, mh - 1); ctx.restore();
-    ctx.fillStyle = "#2a3444"; ctx.fillRect(mx - 1.5, my + mh / 2, 3, 4); ctx.fillRect(mx - 6, my + mh / 2 + 4, 12, 1.5);
+    ctx.fillStyle = "#2a3444"; ctx.fillRect(mx - 1.5, my + mh / 2, 3, 5); ctx.fillRect(mx - 7, my + mh / 2 + 5, 14, 1.5);
     const hist = d.history.slice(-16);
     if (hist.length > 1) {
       const lo = Math.min(...hist), hi = Math.max(...hist) || 1, rng = hi - lo || 1;
@@ -157,33 +169,46 @@ window.Floor = (() => {
       ctx.strokeStyle = col; ctx.lineWidth = 1; ctx.stroke();
     }
     // label plate
-    const lw = 54;
-    ctx.fillStyle = "rgba(5,7,11,0.85)"; ctx.fillRect(x - lw / 2, y + 22, lw, 12);
-    ctx.strokeStyle = run ? col : "#28313f"; ctx.lineWidth = 1; ctx.strokeRect(x - lw / 2 + 0.5, y + 22.5, lw - 1, 11);
-    text(n.toUpperCase(), x, y + 28.5, run || deck ? col : "#8b95a7", 6.5, "center", 800, 0.16);
+    const lw = 64;
+    ctx.fillStyle = "rgba(5,7,11,0.85)"; ctx.fillRect(x - lw / 2, y + 28, lw, 12);
+    ctx.strokeStyle = run ? col : "#28313f"; ctx.lineWidth = 1; ctx.strokeRect(x - lw / 2 + 0.5, y + 28.5, lw - 1, 11);
+    text(n.toUpperCase(), x, y + 34.5, run || deck ? col : "#8b95a7", 6.5, "center", 800, 0.16);
     // progress under plate
     if (run || d.state === "done") {
-      ctx.fillStyle = "#151b26"; ctx.fillRect(x - lw / 2, y + 36, lw, 2);
-      ctx.fillStyle = col; ctx.fillRect(x - lw / 2, y + 36, lw * (d.state === "done" ? 1 : d.progress), 2);
+      ctx.fillStyle = "#151b26"; ctx.fillRect(x - lw / 2, y + 42, lw, 2);
+      ctx.fillStyle = col; ctx.fillRect(x - lw / 2, y + 42, lw * (d.state === "done" ? 1 : d.progress), 2);
     }
     // agent orb
     const bob = reduced ? 0 : Math.sin(t * 0.0022 + ORDER.indexOf(n) * 1.3) * 4;
-    const ox = x - 14, oy = y - 62 + bob;
+    const ox = x - 16, oy = y - 74 + bob;
     ctx.save(); ctx.shadowColor = col; ctx.shadowBlur = run ? 26 : 14;
     const grad = ctx.createRadialGradient(ox - 4, oy - 5, 2, ox, oy, 17);
     grad.addColorStop(0, lighten(col)); grad.addColorStop(1, col);
     ctx.fillStyle = grad; ctx.beginPath();
-    if (SHAPE[n] === "drop") { ctx.moveTo(ox, oy - 17); ctx.bezierCurveTo(ox + 15, oy - 2, ox + 15, oy + 6, ox, oy + 15); ctx.bezierCurveTo(ox - 15, oy + 6, ox - 15, oy - 2, ox, oy - 17); }
-    else ctx.arc(ox, oy, 15, 0, Math.PI * 2);
+    if (SHAPE[n] === "drop") { ctx.moveTo(ox, oy - 19); ctx.bezierCurveTo(ox + 17, oy - 2, ox + 17, oy + 7, ox, oy + 17); ctx.bezierCurveTo(ox - 17, oy + 7, ox - 17, oy - 2, ox, oy - 19); }
+    else ctx.arc(ox, oy, 17, 0, Math.PI * 2);
     ctx.fill(); ctx.restore();
     ctx.strokeStyle = "#fff"; ctx.lineWidth = 2.6; ctx.lineCap = "round"; ctx.lineJoin = "round";
-    ctx.beginPath(); ctx.moveTo(ox - 5.5, oy + 3); ctx.lineTo(ox, oy - 3.5); ctx.lineTo(ox + 5.5, oy + 3); ctx.stroke();
-    if (run) { ctx.beginPath(); ctx.arc(ox, oy, 21 + Math.sin(t * 0.006) * 2, 0, Math.PI * 2); ctx.strokeStyle = hexA(col, 0.5); ctx.lineWidth = 1; ctx.stroke(); }
-    if (deck) { text("ON DECK", ox, oy - 26, "#f5b942", 6, "center", 800, 0.16); }
+    drawGlyph(n, ox, oy);
+    if (run) { ctx.beginPath(); ctx.arc(ox, oy, 23 + Math.sin(t * 0.006) * 2, 0, Math.PI * 2); ctx.strokeStyle = hexA(col, 0.5); ctx.lineWidth = 1; ctx.stroke(); }
+    if (deck) { text("ON DECK", ox, oy - 28, "#f5b942", 6, "center", 800, 0.16); }
     // shadow of the orb on the desk
-    ellipse(ox, y - 8, 9 - bob * 0.3, 3.5, "rgba(0,0,0,0.35)");
+    ellipse(ox, y - 10, 10 - bob * 0.3, 3.8, "rgba(0,0,0,0.35)");
   }
 
+  // one glyph per desk, same stroke as the desk cards
+  function drawGlyph(n, ox, oy) {
+    ctx.save(); ctx.translate(ox - 15, oy - 15); ctx.strokeStyle = "#fff"; ctx.lineWidth = 2.6; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.beginPath();
+    switch (n) {
+      case "spotter": ctx.arc(13.5, 13.5, 4.2, 0, Math.PI * 2); ctx.moveTo(16.8, 16.8); ctx.lineTo(21, 21); break;
+      case "prior": ctx.moveTo(8, 20); ctx.bezierCurveTo(11, 20, 12, 9, 15, 9); ctx.bezierCurveTo(18, 9, 19, 20, 22, 20); break;
+      case "edge": ctx.moveTo(8, 19); ctx.lineTo(14, 19); ctx.lineTo(14, 11); ctx.lineTo(21, 11); break;
+      case "kelly": ctx.moveTo(10, 20); ctx.lineTo(10, 15); ctx.moveTo(15, 20); ctx.lineTo(15, 10); ctx.moveTo(20, 20); ctx.lineTo(20, 13); break;
+      case "taker": ctx.moveTo(9, 15); ctx.lineTo(21, 15); ctx.moveTo(16.5, 10.5); ctx.lineTo(21, 15); ctx.lineTo(16.5, 19.5); break;
+      case "closer": ctx.moveTo(9, 15.5); ctx.lineTo(13.5, 20); ctx.lineTo(21, 10.5); break;
+    }
+    ctx.stroke(); ctx.restore();
+  }
   function lighten(hex) { const n = parseInt(hex.slice(1), 16); const r = Math.min(255, ((n >> 16) & 255) + 70), g = Math.min(255, ((n >> 8) & 255) + 70), b = Math.min(255, (n & 255) + 70); return `rgb(${r},${g},${b})`; }
 
   function drawCore(t) {
@@ -254,11 +279,10 @@ window.Floor = (() => {
     cancelAnimationFrame(raf);
     const frame = () => {
       const t = performance.now() - t0;
-      if (W <= 1 || H <= 1 || Math.abs(canvas.parentElement.clientWidth - W) > 2) resize();
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
+      if (W <= 1 || H <= 1 || Math.abs(canvas.parentElement.clientWidth - realW) > 2) resize();
+      ctx.setTransform(dpr * scale, 0, 0, dpr * scale, 0, 0); ctx.clearRect(0, 0, W, H);
       drawParticles(t);
       drawFloor(t);
-      drawPlant(W * 0.10, H * 0.80, 1); drawPlant(W * 0.90, H * 0.80, 0.9);
       // paint back to front by y
       const items = ORDER.map((n) => ({ y: desks[n].y, fn: () => drawDesk(n, t) }));
       items.push({ y: H * 0.5 - 1, fn: () => drawCore(t) });

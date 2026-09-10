@@ -24,7 +24,15 @@
     const body = d.shape === "drop"
       ? `<path d="M15 2C15 2 27 12 27 18A12 12 0 0 1 3 18C3 12 15 2 15 2Z" fill="var(--c)"/>`
       : `<circle cx="15" cy="15" r="13" fill="var(--c)"/>`;
-    return `<svg class="desk-ico" viewBox="0 0 30 30" aria-hidden="true">${body}<path d="M9.5 18.5L15 11.5L20.5 18.5" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+    const GLYPH = {
+      spotter: '<circle cx="13.5" cy="13.5" r="4.2"/><path d="M16.8 16.8L21 21"/>',
+      prior: '<path d="M8 20C11 20 12 9 15 9C18 9 19 20 22 20"/>',
+      edge: '<path d="M8 19H14V11H21"/>',
+      kelly: '<path d="M10 20V15M15 20V10M20 20V13"/>',
+      taker: '<path d="M9 15H21M16.5 10.5L21 15L16.5 19.5"/>',
+      closer: '<path d="M9 15.5L13.5 20L21 10.5"/>',
+    };
+    return `<svg class="desk-ico" viewBox="0 0 30 30" aria-hidden="true">${body}<g stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round">${GLYPH[d.key]}</g></svg>`;
   };
   $("desks").innerHTML = DESKS.map((d) => `
     <article class="desk" id="desk-${d.key}" style="--c:var(--${d.key})">

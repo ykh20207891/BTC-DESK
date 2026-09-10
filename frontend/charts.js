@@ -160,6 +160,7 @@ window.Charts = (() => {
     // ticket markers
     const t0 = data[0][0], t1 = data[n - 1][0] + 60000;
     let signals = 0;
+    const labels = [];
     (opts.tickets || []).forEach((t) => {
       const ms = t.created * 1000;
       if (ms < t0 || ms > t1 || !t.direction || t.status === "passed" || t.status === "rejected") return;
@@ -177,9 +178,12 @@ window.Charts = (() => {
         if (t.tp) { ctx.strokeStyle = hexA(C.up, 0.5); ctx.beginPath(); ctx.moveTo(x, Y(t.tp)); ctx.lineTo(plotW, Y(t.tp)); ctx.stroke(); }
         ctx.setLineDash([]);
         const nearEdge = x > plotW - 110;
-        label(ctx, (upT ? "LONG " : "SHORT ") + t.qty + " BTC", nearEdge ? x - 6 : x + 6, Y(t.entry) - 7, C.taker, 7, nearEdge ? "right" : "left");
+        labels.push({ x: nearEdge ? x - 6 : x + 6, y: Y(t.entry) - 7, text: (upT ? "LONG " : "SHORT ") + t.qty + " BTC", align: nearEdge ? "right" : "left" });
       }
     });
+    labels.sort((a, b) => a.y - b.y);
+    for (let i = 1; i < labels.length; i++) if (labels[i].y - labels[i - 1].y < 9) labels[i].y = labels[i - 1].y + 9;
+    labels.forEach((l) => label(ctx, l.text, l.x, l.y, C.taker, 7, l.align));
     // last price tag
     const last = opts.last || closes[n - 1], ly = Y(last), lc = last >= data[n - 1][1] ? C.up : C.down;
     ctx.setLineDash([1, 3]); ctx.strokeStyle = hexA(lc, 0.5); ctx.beginPath(); ctx.moveTo(0, ly); ctx.lineTo(plotW, ly); ctx.stroke(); ctx.setLineDash([]);
