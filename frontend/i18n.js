@@ -57,6 +57,7 @@ window.I18N = (() => {
     fl_online: "ONLINE", fl_status: "STATUS", fl_realtime: "REAL-TIME PROCESSING", fl_tagline: "6 AGENTS  /  1 CORE  /  BYBIT BTCUSDT 15M",
     fl_bar_book: "BID SHARE", fl_bar_tickets: "TICKETS", fl_bar_dd: "DRAWDOWN", fl_bar_stake: "STAKE",
     fl_verb_spotter: "SCAN", fl_verb_prior: "PRICE", fl_verb_edge: "EDGE", fl_verb_kelly: "SIZE", fl_verb_taker: "EXECUTE", fl_verb_closer: "SETTLE",
+    tab_floor: "FLOOR", tab_desks: "DESKS", tab_book: "BOOK", tab_tape: "TAPE",
     dir_UP: "UP", dir_DOWN: "DOWN",
   };
 
@@ -113,6 +114,7 @@ window.I18N = (() => {
     ch_history_empty: "残高履歴は最初のティックから始まります", ch_wait_tape: "テープ待ち",
     ch_scanning: "この形を履歴から走査中", ch_bars: "+{n}本", ch_bid: "買い", ch_ask: "売り",
     fl_core: "BTC コア", fl_deck: "承認待ち", fl_offline: "ストリーム切断 · 再接続中", fl_waiting: "状態待ち",
+    tab_floor: "フロア", tab_desks: "デスク", tab_book: "ブック", tab_tape: "ログ",
     fl_engine: "コアエンジン", fl_network: "6エージェント取引ネットワーク", fl_sysstatus: "システム状態", fl_allonline: "全エージェント稼働中",
     fl_online: "稼働中", fl_status: "状態", fl_realtime: "リアルタイム処理", fl_tagline: "6エージェント / 1コア / BYBIT BTCUSDT 15分",
     fl_bar_book: "買い比率", fl_bar_tickets: "チケット", fl_bar_dd: "ドローダウン", fl_bar_stake: "建玉額",

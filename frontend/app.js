@@ -281,8 +281,8 @@
   setLayout(layoutPref);
 
   // drawer
-  function openDrawer() { $("drawer").hidden = false; $("drawer").querySelector("input").focus(); }
-  $("drawerClose").addEventListener("click", () => ($("drawer").hidden = true));
+  function openDrawer() { if (mq.matches) { view = "book"; applyMobile(); $("drawer").scrollIntoView({ block: "start" }); return; } $("drawer").hidden = false; $("drawer").querySelector("input").focus(); }
+  $("drawerClose").addEventListener("click", () => { if (mq.matches) return; $("drawer").hidden = true; });
   document.addEventListener("keydown", (e) => e.key === "Escape" && ($("drawer").hidden = true));
   function fillRisk(r) { const f = $("riskForm"); Object.keys(r).forEach((k) => { if (f.elements[k]) f.elements[k].value = r[k]; }); }
   $("riskForm").addEventListener("submit", (e) => {
@@ -291,6 +291,27 @@
     Array.from(f.elements).forEach((i) => { if (i.name) risk[i.name] = i.name.includes("tickets") || i.name.includes("bars") ? parseInt(i.value, 10) : parseFloat(i.value); });
     post("/api/settings", { risk }).then(() => msg(T("msg_saved"))).catch(alertErr);
   });
+
+  /* ---------------- phone mode: one view at a time, bottom tabs ---------------- */
+  const mq = window.matchMedia("(max-width: 820px)");
+  let view = "floor"; try { view = localStorage.getItem("btcdesk.view") || "floor"; } catch (e) { /* ignore */ }
+  function applyMobile() {
+    const mobile = mq.matches;
+    document.body.classList.toggle("mobile", mobile);
+    if (mobile) { $("drawer").hidden = false; }
+    else { $("drawer").hidden = true; }
+    document.querySelectorAll("[data-view]").forEach((el) => el.classList.toggle("view-on", !mobile || el.dataset.view === view));
+    document.querySelectorAll(".tab").forEach((b) => b.classList.toggle("on", b.dataset.tab === view));
+    if (S) render(S);
+  }
+  document.querySelectorAll(".tab").forEach((b) => b.addEventListener("click", () => {
+    view = b.dataset.tab;
+    try { localStorage.setItem("btcdesk.view", view); } catch (e) { /* ignore */ }
+    applyMobile();
+    window.scrollTo({ top: 0 });
+  }));
+  mq.addEventListener("change", applyMobile);
+  applyMobile();
 
   window.addEventListener("resize", () => S && render(S));
 })();

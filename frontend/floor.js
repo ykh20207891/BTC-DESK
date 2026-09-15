@@ -8,7 +8,7 @@ window.Floor = (() => {
   const L = (k, p) => (window.I18N ? window.I18N.t(k, p) : k);
   const reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  let canvas, ctx, W = 0, H = 0, dpr = 1, scale = 1, realW = 0, raf = 0, t0 = performance.now();
+  let canvas, ctx, W = 0, H = 0, dpr = 1, scale = 1, realW = 0, portrait = false, raf = 0, t0 = performance.now();
   const desks = {};
   const flights = [];
   let S = null, holder = "spotter", coreState = "idle", online = false, lastTick = 0;
@@ -36,13 +36,16 @@ window.Floor = (() => {
     realW = Math.max(1, Math.round(r.width)); const realH = Math.max(1, Math.round(r.height));
     canvas.width = Math.round(realW * dpr); canvas.height = Math.round(realH * dpr);
     canvas.style.width = realW + "px"; canvas.style.height = realH + "px";
-    scale = realW < 620 ? 0.62 : realW < 1000 ? 0.82 : 1;
+    portrait = realH > realW * 0.95;
+    scale = portrait ? 0.78 : realW < 1000 ? 0.82 : 1;
     W = realW / scale; H = realH / scale;
     layout();
   }
   function layout() {
-    const cx = W / 2, cy = H * 0.5 + 6, rx = Math.min(W * 0.27, 400), ry = Math.min(H * 0.30, 165);
-    ORDER.forEach((n) => { const a = (ANGLE[n] * Math.PI) / 180; desks[n].x = cx + Math.cos(a) * rx; desks[n].y = cy + Math.sin(a) * ry; });
+    const cx = W / 2, cy = H * 0.5 + (portrait ? 0 : 6);
+    const rx = portrait ? W * 0.33 : Math.min(W * 0.27, 400), ry = portrait ? H * 0.34 : Math.min(H * 0.30, 165);
+    const ANG = portrait ? { spotter: -118, prior: -62, edge: -8, kelly: 62, taker: 118, closer: 188 } : ANGLE;
+    ORDER.forEach((n) => { const a = (ANG[n] * Math.PI) / 180; desks[n].x = cx + Math.cos(a) * rx; desks[n].y = cy + Math.sin(a) * ry; });
   }
 
   function update(state) {
@@ -116,16 +119,17 @@ window.Floor = (() => {
     for (let y = (cy % 40); y < H; y += 40) { ctx.beginPath(); ctx.moveTo(0, y + 0.5); ctx.lineTo(W, y + 0.5); ctx.stroke(); }
     // concentric perspective rings
     const spin = reduced ? 0 : t * 0.00003;
+    const ringK = portrait ? 0.62 : 1, ringR = portrait ? 0.62 : 0.40;
     for (let i = 1; i <= 7; i++) {
-      const rx = 110 + i * 105, ry = rx * 0.40, a = 0.26 - i * 0.03;
+      const rx = (110 + i * 105) * ringK, ry = rx * ringR, a = 0.26 - i * 0.03;
       ellipse(cx, cy, rx, ry, null, `rgba(60,140,255,${a})`, i % 3 === 0 ? 1.5 : 1);
-      if (i % 2) { ctx.save(); ctx.lineDashOffset = -(t * 0.01 * (i % 4 ? 1 : -1)); ellipse(cx, cy, rx - 14, (rx - 14) * 0.40, null, `rgba(90,190,255,${a + 0.08})`, 2, [40, 60]); ctx.restore(); }
+      if (i % 2) { ctx.save(); ctx.lineDashOffset = -(t * 0.01 * (i % 4 ? 1 : -1)); ellipse(cx, cy, rx - 14, (rx - 14) * ringR, null, `rgba(90,190,255,${a + 0.08})`, 2, [40, 60]); ctx.restore(); }
     }
     // radial spokes
     ctx.strokeStyle = "rgba(60,140,255,0.08)";
     for (let k = 0; k < 24; k++) {
       const a = (k / 24) * Math.PI * 2 + spin;
-      ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * 120, cy + Math.sin(a) * 48); ctx.lineTo(cx + Math.cos(a) * 900, cy + Math.sin(a) * 360); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * 120 * ringK, cy + Math.sin(a) * 120 * ringK * ringR); ctx.lineTo(cx + Math.cos(a) * 900 * ringK, cy + Math.sin(a) * 900 * ringK * ringR); ctx.stroke();
     }
     // drifting data ticks
     ticks.forEach((p) => {
@@ -137,19 +141,20 @@ window.Floor = (() => {
 
   /* ---------------- core ---------------- */
   function drawCore(t) {
-    const cx = W / 2, cy = H * 0.5 + 6;
+    const cx = W / 2, cy = H * 0.5 + (portrait ? 0 : 6);
     const busy = coreState === "routing";
+    const k = portrait ? 0.7 : 1;
     const col = coreState === "paused" ? AMBER : coreState === "guard" ? RED : CYAN;
     // energy plane
     const pg = ctx.createRadialGradient(cx, cy, 10, cx, cy, 230);
     pg.addColorStop(0, hexA(col, 0.35)); pg.addColorStop(0.5, hexA(col, 0.10)); pg.addColorStop(1, hexA(col, 0));
-    ellipse(cx, cy + 6, 240, 92, pg);
+    ellipse(cx, cy + 6, 240 * k, 92 * k, pg);
     [[150, 58, 0.9, 2.5], [120, 46, 0.55, 1.5], [92, 35, 0.8, 2], [66, 25, 0.5, 1]].forEach(([rx, ry, a, lw], i) => {
-      ctx.save(); glow(col, 14); ctx.lineDashOffset = -(t * 0.03 * (i % 2 ? -1 : 1)); ellipse(cx, cy + 6, rx, ry, null, hexA(col, a), lw, i % 2 ? [18, 10] : [3, 5]); ctx.restore();
+      ctx.save(); glow(col, 14); ctx.lineDashOffset = -(t * 0.03 * (i % 2 ? -1 : 1)); ellipse(cx, cy + 6, rx * k, ry * k, null, hexA(col, a), lw, i % 2 ? [18, 10] : [3, 5]); ctx.restore();
     });
     // tick ring
     ctx.save(); ctx.strokeStyle = hexA(CYAN2, 0.7); ctx.lineWidth = 1.5;
-    for (let k = 0; k < 36; k++) { const a = (k / 36) * Math.PI * 2 + (reduced ? 0 : t * 0.0004); const r1 = 168, r2 = k % 6 ? 176 : 184; ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * r1, cy + 6 + Math.sin(a) * r1 * 0.39); ctx.lineTo(cx + Math.cos(a) * r2, cy + 6 + Math.sin(a) * r2 * 0.39); ctx.stroke(); }
+    for (let j = 0; j < 36; j++) { const a = (j / 36) * Math.PI * 2 + (reduced ? 0 : t * 0.0004); const r1 = 168 * k, r2 = (j % 6 ? 176 : 184) * k; ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * r1, cy + 6 + Math.sin(a) * r1 * 0.39); ctx.lineTo(cx + Math.cos(a) * r2, cy + 6 + Math.sin(a) * r2 * 0.39); ctx.stroke(); }
     ctx.restore();
     // pillar of light
     const lg = ctx.createLinearGradient(cx, cy - 150, cx, cy + 10);
@@ -185,7 +190,7 @@ window.Floor = (() => {
 
   /* ---------------- stations ---------------- */
   function drawBeam(n, t) {
-    const d = desks[n], cx = W / 2, cy = H * 0.5 + 6, col = COLOR[n];
+    const d = desks[n], cx = W / 2, cy = H * 0.5 + (portrait ? 0 : 6), col = COLOR[n];
     const active = holder === n && coreState === "routing", run = d.state === "run";
     const x1 = d.x, y1 = d.y + 14, x2 = cx, y2 = cy + 6;
     const g = ctx.createLinearGradient(x1, y1, x2, y2); g.addColorStop(0, hexA(col, active || run ? 0.95 : 0.55)); g.addColorStop(1, hexA(CYAN2, 0.85));
@@ -256,7 +261,13 @@ window.Floor = (() => {
     const cg = ctx.createLinearGradient(x, oy + R, x, y + 10); cg.addColorStop(0, hexA(col, 0.25)); cg.addColorStop(1, hexA(col, 0));
     ctx.fillStyle = cg; ctx.fillRect(x - 14, oy + R, 28, y + 10 - (oy + R));
     if (deck) text(L("fl_deck"), ox, oy - R - 16, AMBER, 7, "center", 800, 0.16);
-    if (scale < 0.8) { text(n.toUpperCase(), x, y + 50, col, 7, "center", 800, 0.16); return; }
+    if (portrait) {
+      const rows = cardMetrics(n);
+      ctx.save(); glow(col, 8); rrect(x - 46, y + 46, 92, 30, 4, "rgba(6,10,20,0.88)", hexA(col, 0.6), 1); ctx.restore();
+      text(n.toUpperCase(), x, y + 55, col, 8, "center", 800, 0.16);
+      if (rows[0]) text(rows[0][0] + "  " + rows[0][1], x, y + 68, INK, 7.5, "center", 800, 0.06);
+      return;
+    }
     // data card
     const low = n === "taker" || n === "kelly";   // bottom stations keep their card clear of the core plate
     const cw = 186, ch = 78, cxr = x + 62, cyr = low ? y - 22 : y - 78;
@@ -289,7 +300,7 @@ window.Floor = (() => {
 
   /* ---------------- ticket flights ---------------- */
   function drawFlights(t) {
-    const cx = W / 2, cy = H * 0.5 + 6;
+    const cx = W / 2, cy = H * 0.5 + (portrait ? 0 : 6);
     for (let i = flights.length - 1; i >= 0; i--) {
       const f = flights[i], u = (t - f.t0) / f.dur;
       if (u >= 1.3) { flights.splice(i, 1); continue; }
@@ -305,8 +316,22 @@ window.Floor = (() => {
 
   /* ---------------- HUD ---------------- */
   function drawHUD() {
-    if (scale < 0.8) return;
     const m = (S && S.market) || {}, Lg = (S && S.ledger) || {}, mo = (S && S.model) || {}, risk = (S && S.risk) || {};
+    if (portrait) {
+      const ok = online && !(S && S.paused) && !(S && S.halted);
+      const stTxt = !online ? L("si_lost") : S && S.paused ? L("swarm_paused") : S && S.halted ? L("swarm_guard") : L("fl_allonline");
+      text("BTC DESK", 14, 18, INK, 10, "left", 800, 0.12);
+      text(L("fl_network"), 14, 31, hexA(CYAN2, 0.9), 6.5, "left", 800, 0.16);
+      ctx.save(); glow(ok ? GREEN : AMBER, 8); ctx.fillStyle = ok ? GREEN : AMBER; ctx.beginPath(); ctx.arc(W - 14 - ctx.measureText(stTxt).width - 10, 18, 2.5, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+      text(stTxt, W - 14, 18, ok ? GREEN : AMBER, 7.5, "right", 800, 0.14);
+      const closes = S && S.candles_1m ? S.candles_1m.slice(-60).map((r) => r[4]) : [];
+      ctx.save(); glow(CYAN, 8); spark(14, H - 52, 110, 22, closes, hexA(CYAN2, 0.95)); ctx.restore();
+      text(L("fl_realtime"), 14, H - 22, hexA(CYAN2, 0.95), 6.5, "left", 800, 0.14);
+      const rows = [[L("tele_funding"), m.funding != null ? (m.funding * 100 >= 0 ? "+" : "") + (m.funding * 100).toFixed(4) + "%" : "–"], [L("tele_spread"), m.spread != null ? "$" + m.spread.toFixed(2) : "–"]];
+      rows.forEach(([k2, v], i) => { const y = H - 44 + i * 13; text(k2, W - 70, y, MUTED, 6.5, "right", 700, 0.14); text(v, W - 14, y, INK, 7.5, "right", 800, 0.06); });
+      return;
+    }
+    if (scale < 0.8) return;
     // top-left: identity + pipeline verbs
     text("BTC DESK", 16, 20, INK, 11, "left", 800, 0.12);
     text(L("fl_network"), 16, 34, hexA(CYAN2, 0.9), 7, "left", 800, 0.18);
