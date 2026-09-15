@@ -145,6 +145,16 @@
       bar("bias-book", (m.imbalance + 1) / 2, T("bid_pct", { p: Math.round(((m.imbalance + 1) / 2) * 100) }));
     }
 
+    // learning layer
+    const lg = s.learning || {};
+    if (lg.samples != null) {
+      const modeEl = $("learnMode");
+      const modeTxt = !lg.enabled ? T("learn_off") : lg.active ? T("learn_active") : lg.mode === "active" ? T("learn_waiting", { n: lg.min_samples }) : T("learn_shadow");
+      modeEl.textContent = modeTxt; modeEl.classList.toggle("active", !!lg.active);
+      setText("learnLine", T("learn_line", { n: lg.samples, hh: Math.round(lg.hit_model * 100) + "%", hl: Math.round(lg.hit_learn * 100) + "%", bh: lg.brier_model.toFixed(3), bl: lg.brier_learn.toFixed(3) }));
+      setText("learnP", T("learn_p", { ph: cents(lg.p_hand), pl: cents(lg.p_learn) }));
+    }
+
     // candles
     const cr = Charts.candles($("candles"), s.candles_1m, { tickets: recent, last: m.last });
     setText("candleRight", T("candle_right", { rsi: m.rsi14 != null ? m.rsi14.toFixed(1) : "–", z: m.z != null ? (m.z >= 0 ? "+" : "") + m.z.toFixed(2) : "–", n: cr ? cr.signals : 0 }));
@@ -284,12 +294,20 @@
   function openDrawer() { if (mq.matches) { view = "book"; applyMobile(); $("drawer").scrollIntoView({ block: "start" }); return; } $("drawer").hidden = false; $("drawer").querySelector("input").focus(); }
   $("drawerClose").addEventListener("click", () => { if (mq.matches) return; $("drawer").hidden = true; });
   document.addEventListener("keydown", (e) => e.key === "Escape" && ($("drawer").hidden = true));
-  function fillRisk(r) { const f = $("riskForm"); Object.keys(r).forEach((k) => { if (f.elements[k]) f.elements[k].value = r[k]; }); }
+  function fillRisk(r) {
+    const f = $("riskForm"); Object.keys(r).forEach((k) => { if (f.elements[k]) f.elements[k].value = r[k]; });
+    const lg = (S && S.learning) || {};
+    ["mode", "min_samples", "lr"].forEach((k) => { const el = f.elements["learning." + k]; if (el && lg[k] != null) el.value = lg[k]; });
+  }
   $("riskForm").addEventListener("submit", (e) => {
     e.preventDefault();
-    const f = e.target, risk = {};
-    Array.from(f.elements).forEach((i) => { if (i.name) risk[i.name] = i.name.includes("tickets") || i.name.includes("bars") ? parseInt(i.value, 10) : parseFloat(i.value); });
-    post("/api/settings", { risk }).then(() => msg(T("msg_saved"))).catch(alertErr);
+    const f = e.target, risk = {}, learning = {};
+    Array.from(f.elements).forEach((i) => {
+      if (!i.name) return;
+      if (i.name.startsWith("learning.")) { const k = i.name.slice(9); learning[k] = k === "mode" ? i.value : k === "min_samples" ? parseInt(i.value, 10) : parseFloat(i.value); return; }
+      risk[i.name] = i.name.includes("tickets") || i.name.includes("bars") ? parseInt(i.value, 10) : parseFloat(i.value);
+    });
+    post("/api/settings", { risk, learning }).then(() => msg(T("msg_saved"))).catch(alertErr);
   });
 
   /* ---------------- phone mode: one view at a time, bottom tabs ---------------- */

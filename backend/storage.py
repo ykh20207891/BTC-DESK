@@ -20,6 +20,7 @@ class Storage:
             CREATE TABLE IF NOT EXISTS equity (ts REAL, equity REAL);
             CREATE TABLE IF NOT EXISTS log (ts REAL, agent TEXT, action TEXT, amount TEXT, text TEXT, key TEXT, params TEXT);
             CREATE TABLE IF NOT EXISTS kv (key TEXT PRIMARY KEY, value TEXT);
+            CREATE TABLE IF NOT EXISTS predictions (id TEXT PRIMARY KEY, ts REAL, resolved REAL, body TEXT);
             CREATE INDEX IF NOT EXISTS ix_equity_ts ON equity(ts);
             CREATE INDEX IF NOT EXISTS ix_log_ts ON log(ts);
             CREATE INDEX IF NOT EXISTS ix_tickets_created ON tickets(created);
@@ -89,12 +90,22 @@ class Storage:
             out.append(e)
         return out
 
+    # ---- predictions (learning) ----
+    def save_prediction(self, p: dict) -> None:
+        with self._lock:
+            self.db.execute("INSERT OR REPLACE INTO predictions (id, ts, resolved, body) VALUES (?,?,?,?)", (p["id"], p["ts"], p.get("resolved"), json.dumps(p)))
+            self.db.commit()
+
+    def load_predictions(self, unresolved_only: bool = False, limit: int = 500) -> list[dict]:
+        q = "SELECT body FROM predictions" + (" WHERE resolved IS NULL" if unresolved_only else "") + " ORDER BY ts DESC LIMIT ?"
+        return [json.loads(r[0]) for r in self.db.execute(q, (limit,)).fetchall()]
+
     # ---- maintenance ----
     def prune(self, keep_log: int = 20_000, keep_equity: int = 200_000, keep_tickets: int = 5_000) -> dict:
         """Keep the tables bounded on a machine that runs for months."""
         with self._lock:
             n = {}
-            for table, ts_col, keep in (("log", "ts", keep_log), ("equity", "ts", keep_equity), ("tickets", "created", keep_tickets)):
+            for table, ts_col, keep in (("log", "ts", keep_log), ("equity", "ts", keep_equity), ("tickets", "created", keep_tickets), ("predictions", "ts", 50_000)):
                 cur = self.db.execute(
                     f"DELETE FROM {table} WHERE {ts_col} < (SELECT COALESCE(MIN({ts_col}), 0) FROM (SELECT {ts_col} FROM {table} ORDER BY {ts_col} DESC LIMIT ?))",
                     (keep,),

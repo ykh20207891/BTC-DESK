@@ -14,6 +14,7 @@ from .broker import LiveBroker, PaperBroker, Position
 from .bybit import BybitPublicWS, BybitREST, round_step
 from .config import DATA_DIR, Settings
 from .indicators import atr, ema, rsi, session_vwap, volume_z, zbands
+from .learner import Learner, new_prediction
 from .model import Features, book_fair, prior
 from .model import edge as calc_edge
 from .model import kelly as calc_kelly
@@ -47,6 +48,9 @@ class Engine:
         self.store = store or Storage(DATA_DIR / "ledger.sqlite")
         self.analog = AnalogMatcher(window=48, horizon=24, k=7)
         self.analog.scanned_total = int(self.store.get("scanned_total", 0))
+        self.learner = Learner(lr=settings.learning.lr, state=self.store.get("learner"))
+        self.predictions: dict[str, dict] = {p["id"]: p for p in self.store.load_predictions(unresolved_only=True)}
+        self.p_learn = 0.5
         self.lot = 0.001
         self.min_qty = 0.001
         self.max_qty = 100.0
@@ -292,6 +296,7 @@ class Engine:
                 self.recompute(full=False)
                 await self._mark_book()
                 await self._closer_check()
+                self._resolve_predictions()
                 self._sweep_stale()
                 self._check_missed_close()
                 self._maintenance()
@@ -382,12 +387,16 @@ class Engine:
             self.store.set("scanned_total", self.analog.scanned_total)
         self.features = f
         p_up, contrib = prior(f)
+        self.p_learn = self.learner.predict(contrib)
+        self.p_hand = p_up
+        if self.learning_active():
+            p_up = self.p_learn
         p_mkt = book_fair(f)
         direction, edge_c = calc_edge(p_up, p_mkt)
         p_dir = p_up if direction == "UP" else 1 - p_up
         kz = calc_kelly(p_dir, self.equity, mark or last, self.s.risk, self.dd_notch(), self.lot)
         self.model = {
-            "p_up": round(p_up, 4), "p_market": round(p_mkt, 4), "direction": direction,
+            "p_up": round(p_up, 4), "p_hand": round(self.p_hand, 4), "p_learn": round(self.p_learn, 4), "p_market": round(p_mkt, 4), "direction": direction,
             "edge_cents": round(edge_c, 2), "confidence": round(abs(p_up - 0.5) * 2, 3),
             "contrib": contrib, "kelly": kz, "features": f.dict(),
         }
@@ -684,7 +693,8 @@ class Engine:
             f"model fair {p_up*100:.1f}¢ UP · analog {an.get('up',0)}↑ {an.get('down',0)}↓ match {an.get('match',0):.2f} · momentum {self.model['contrib']['momentum']:+.2f}",
             key="price", p=f"{p_up*100:.1f}¢", up=an.get("up", 0), down=an.get("down", 0), match=f"{an.get('match',0):.2f}", mom=f"{self.model['contrib']['momentum']:+.2f}",
         )
-        t.update({"p_model": p_up, "contrib": self.model["contrib"]})
+        t.update({"p_model": p_up, "p_learn": self.p_learn, "contrib": self.model["contrib"]})
+        self._record_prediction(bar_start, t["horizon_ts"])
         self._desk_state("prior", "done", 1.0)
         self._handoff()
 
@@ -800,6 +810,52 @@ class Engine:
         self.holder = "spotter"
         self.stage = 0
 
+    # ------------------------------------------------------------------ learning
+    def learning_active(self) -> bool:
+        lg = self.s.learning
+        return lg.enabled and lg.mode == "active" and self.learner.samples >= lg.min_samples
+
+    def _record_prediction(self, bar_ts: int, horizon_ts: int):
+        if not self.s.learning.enabled or not self.model:
+            return
+        pid = f"p{bar_ts}"
+        if pid in self.predictions:
+            return
+        p = new_prediction(bar_ts, horizon_ts, self.mark_price(), self.model["contrib"], self.p_hand, self.p_learn)
+        self.predictions[pid] = p
+        self.store.save_prediction(p)
+
+    def _resolve_predictions(self):
+        now_ms = _now() * 1000
+        mark = self.mark_price()
+        if not mark:
+            return
+        for pid, p in list(self.predictions.items()):
+            if now_ms < p["horizon_ts"]:
+                continue
+            went_up = mark > p["price"]
+            self.learner.lr = self.s.learning.lr
+            self.learner.resolve(p["contrib"], p["p_model"], p["p_learn"], went_up)
+            p.update({"resolved": _now(), "outcome": 1 if went_up else 0, "horizon_price": mark})
+            self.store.save_prediction(p)
+            self.predictions.pop(pid)
+            self.store.set("learner", self.learner.dump())
+            s = self.learner.summary()
+            self.log_event(
+                "prior", "LEARN", None,
+                f"resolved {pid[1:]} · {'UP' if went_up else 'DOWN'} · hand {p['p_model']*100:.0f}¢ vs learner {p['p_learn']*100:.0f}¢ · n {s['samples']} · hit {s['hit_model']*100:.0f}% vs {s['hit_learn']*100:.0f}%",
+                key="learn", res="UP" if went_up else "DOWN", hand=f"{p['p_model']*100:.0f}¢", learn=f"{p['p_learn']*100:.0f}¢", n=s["samples"], hh=f"{s['hit_model']*100:.0f}%", hl=f"{s['hit_learn']*100:.0f}%",
+            )
+
+    def learning_state(self) -> dict:
+        lg = self.s.learning
+        s = self.learner.summary()
+        s.update({
+            "enabled": lg.enabled, "mode": lg.mode, "min_samples": lg.min_samples, "active": self.learning_active(),
+            "pending": len(self.predictions), "p_hand": round(getattr(self, "p_hand", 0.5), 4), "p_learn": round(self.p_learn, 4),
+        })
+        return s
+
     # ------------------------------------------------------------------ research notes
     def _research_note(self, n: int):
         if not self.market:
@@ -862,7 +918,7 @@ class Engine:
                 "dd_now": round(self.dd_now(), 4), "dd_notch": self.dd_notch(), "day_peak": round(self.day_peak, 2),
                 "history": list(self.equity_hist)[-400:], **st,
             },
-            "risk": self.s.risk.__dict__, "has_keys": bool(self.s.api_key and self.s.api_secret),
+            "risk": self.s.risk.__dict__, "learning": self.learning_state(), "has_keys": bool(self.s.api_key and self.s.api_secret),
             "health": self.health(),
             "log": list(self.log)[-80:], "tape": list(self.tape)[-30:],
             "day": self.day.isoformat(),

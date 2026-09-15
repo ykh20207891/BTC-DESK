@@ -51,7 +51,15 @@ def validate_risk(r: RiskLimits) -> None:
         raise ValueError("take_profit_pct must be at least half of stop_loss_pct")
 
 
-EDITABLE = ("mode", "approvals_only", "paused", "risk")
+@dataclass
+class Learning:
+    enabled: bool = True          # record predictions and fit the calibration layer
+    mode: str = "shadow"          # shadow = report only | active = drive the desk once min_samples is reached
+    min_samples: int = 300
+    lr: float = 0.05
+
+
+EDITABLE = ("mode", "approvals_only", "paused", "risk", "learning")
 
 
 @dataclass
@@ -71,6 +79,7 @@ class Settings:
     stage_pace_s: float = 1.4            # visible dwell per desk while a ticket is routed
     rescan_interval_s: int = 60
     risk: RiskLimits = field(default_factory=RiskLimits)
+    learning: Learning = field(default_factory=Learning)
 
     def public(self) -> dict:
         d = asdict(self)
@@ -82,7 +91,7 @@ class Settings:
         return d
 
     def save(self) -> None:
-        payload = {k: (asdict(self.risk) if k == "risk" else getattr(self, k)) for k in EDITABLE}
+        payload = {k: (asdict(getattr(self, k)) if k in ("risk", "learning") else getattr(self, k)) for k in EDITABLE}
         tmp = SETTINGS_PATH.with_suffix(".json.tmp")
         tmp.write_text(json.dumps(payload, indent=2))
         tmp.replace(SETTINGS_PATH)
@@ -99,6 +108,9 @@ class Settings:
                     if k == "risk":
                         fields = RiskLimits.__dataclass_fields__
                         s.risk = RiskLimits(**{kk: vv for kk, vv in saved["risk"].items() if kk in fields})
+                    elif k == "learning":
+                        fields = Learning.__dataclass_fields__
+                        s.learning = Learning(**{kk: vv for kk, vv in saved["learning"].items() if kk in fields})
                     else:
                         setattr(s, k, saved[k])
             except (OSError, ValueError, TypeError):
@@ -129,6 +141,18 @@ class Settings:
                     except (TypeError, ValueError):
                         raise ValueError(f"risk.{kk}: not a number")
                     changed.append(f"risk.{kk}")
+            elif k == "learning" and isinstance(v, dict):
+                if "mode" in v and v["mode"] not in ("shadow", "active"):
+                    raise ValueError("learning.mode must be shadow or active")
+                if "min_samples" in v and not (20 <= int(v["min_samples"]) <= 100_000):
+                    raise ValueError("learning.min_samples outside [20, 100000]")
+                if "lr" in v and not (0.001 <= float(v["lr"]) <= 0.5):
+                    raise ValueError("learning.lr outside [0.001, 0.5]")
+                for kk, vv in v.items():
+                    if kk in Learning.__dataclass_fields__:
+                        typ = type(getattr(self.learning, kk))
+                        setattr(self.learning, kk, typ(vv))
+                        changed.append(f"learning.{kk}")
             elif k == "approvals_only":
                 new_appr = bool(v)
                 changed.append(k)

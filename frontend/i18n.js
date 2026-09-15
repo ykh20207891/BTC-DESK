@@ -58,6 +58,9 @@ window.I18N = (() => {
     fl_bar_book: "BID SHARE", fl_bar_tickets: "TICKETS", fl_bar_dd: "DRAWDOWN", fl_bar_stake: "STAKE",
     fl_verb_spotter: "SCAN", fl_verb_prior: "PRICE", fl_verb_edge: "EDGE", fl_verb_kelly: "SIZE", fl_verb_taker: "EXECUTE", fl_verb_closer: "SETTLE",
     tab_floor: "FLOOR", tab_desks: "DESKS", tab_book: "BOOK", tab_tape: "TAPE",
+    learn_title: "LEARNING", learn_shadow: "SHADOW", learn_active: "ACTIVE", learn_off: "OFF", learn_waiting: "ACTIVE AT {n}",
+    learn_line: "{n} RESOLVED · HIT {hh} → {hl} · BRIER {bh} → {bl}", learn_p: "HAND {ph} · LEARNER {pl}",
+    l_sub: "— CALIBRATION LAYER · RISK LIMITS UNTOUCHED", l_mode: "LEARNING MODE", l_min: "MIN SAMPLES", l_lr: "LEARNING RATE",
     dir_UP: "UP", dir_DOWN: "DOWN",
   };
 
@@ -115,6 +118,9 @@ window.I18N = (() => {
     ch_scanning: "この形を履歴から走査中", ch_bars: "+{n}本", ch_bid: "買い", ch_ask: "売り",
     fl_core: "BTC コア", fl_deck: "承認待ち", fl_offline: "ストリーム切断 · 再接続中", fl_waiting: "状態待ち",
     tab_floor: "フロア", tab_desks: "デスク", tab_book: "ブック", tab_tape: "ログ",
+    learn_title: "学習", learn_shadow: "影モード", learn_active: "本番", learn_off: "オフ", learn_waiting: "{n} 件で本番",
+    learn_line: "解決 {n} 件 · 的中 {hh} → {hl} · Brier {bh} → {bl}", learn_p: "手動 {ph} · 学習 {pl}",
+    l_sub: "— キャリブレーション層 · リスク上限は対象外", l_mode: "学習モード", l_min: "最小サンプル数", l_lr: "学習率",
     fl_engine: "コアエンジン", fl_network: "6エージェント取引ネットワーク", fl_sysstatus: "システム状態", fl_allonline: "全エージェント稼働中",
     fl_online: "稼働中", fl_status: "状態", fl_realtime: "リアルタイム処理", fl_tagline: "6エージェント / 1コア / BYBIT BTCUSDT 15分",
     fl_bar_book: "買い比率", fl_bar_tickets: "チケット", fl_bar_dd: "ドローダウン", fl_bar_stake: "建玉額",
@@ -122,7 +128,7 @@ window.I18N = (() => {
     dir_UP: "上昇", dir_DOWN: "下落",
   };
 
-  const ACTION_JA = { SCAN: "スキャン", RESEARCH: "調査", PRICE: "価格付け", EDGE: "エッジ", SIZE: "サイズ", FILL: "約定", SETTLE: "決済", GUARD: "ガード", PASS: "見送り", HOLD: "保留", SYSTEM: "システム" };
+  const ACTION_JA = { SCAN: "スキャン", RESEARCH: "調査", PRICE: "価格付け", EDGE: "エッジ", SIZE: "サイズ", FILL: "約定", SETTLE: "決済", GUARD: "ガード", PASS: "見送り", HOLD: "保留", SYSTEM: "システム", LEARN: "学習" };
   const WORD_JA = {
     "boot scan": "起動時スキャン", "15m close": "15分足確定", "manual scan": "手動スキャン",
     stop: "損切り", target: "利確", horizon: "ホライズン", above: "上", below: "下",
@@ -166,6 +172,7 @@ window.I18N = (() => {
     op_resume: "オペレーターがスウォームを再開",
     op_approvals: "承認必須モード {on}",
     op_mode: "モードを {mode} に設定 · ブローカー切替はエンジン再起動が必要",
+    learn: "予測 {res} を解決 · 手動 {hand} 対 学習 {learn} · n {n} · 的中 {hh} 対 {hl}",
   };
 
   let lang = "en";

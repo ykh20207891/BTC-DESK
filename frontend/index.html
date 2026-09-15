@@ -100,6 +100,12 @@
       </div>
       <div class="eq-wrap"><canvas id="equity"></canvas><span class="eq-tag" id="eqTag">$0</span></div>
       <div class="bias" id="bias"></div>
+      <div class="learn" id="learn">
+        <span class="learn-lbl" data-i18n="learn_title">LEARNING</span>
+        <span class="learn-mode" id="learnMode">SHADOW</span>
+        <span class="learn-txt" id="learnLine">–</span>
+        <span class="learn-p" id="learnP">–</span>
+      </div>
     </div>
   </div>
 
@@ -173,6 +179,10 @@
     <label><span data-i18n="r_hor">HORIZON BARS</span><input name="horizon_bars" type="number" step="1" min="1" max="8"></label>
     <label><span data-i18n="r_sl">STOP LOSS</span><input name="stop_loss_pct" type="number" step="0.001" min="0.001" max="0.05"></label>
     <label><span data-i18n="r_tp">TAKE PROFIT</span><input name="take_profit_pct" type="number" step="0.001" min="0.001" max="0.1"></label>
+    <div class="ph ph-inner"><span class="ph-sq"></span><span class="ph-title" data-i18n="learn_title">LEARNING</span><span class="ph-sub" data-i18n="l_sub">— CALIBRATION LAYER · RISK LIMITS UNTOUCHED</span></div>
+    <label><span data-i18n="l_mode">LEARNING MODE</span><select name="learning.mode"><option value="shadow" data-i18n="learn_shadow">SHADOW</option><option value="active" data-i18n="learn_active">ACTIVE</option></select></label>
+    <label><span data-i18n="l_min">MIN SAMPLES</span><input name="learning.min_samples" type="number" step="10" min="20" max="100000"></label>
+    <label><span data-i18n="l_lr">LEARNING RATE</span><input name="learning.lr" type="number" step="0.01" min="0.001" max="0.5"></label>
     <div class="risk-actions">
       <button type="submit" class="btn ok" data-i18n="r_save">SAVE LIMITS</button>
       <button type="button" class="btn" id="btnScan" data-i18n="r_scan">CUT A TICKET NOW</button>
