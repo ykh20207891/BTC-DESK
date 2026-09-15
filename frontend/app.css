@@ -198,7 +198,7 @@ canvas { display: block; }
 
 /* ---------------- office ---------------- */
 .office { border-bottom: 1px solid var(--line); background: var(--bg); }
-.office-body { display: grid; grid-template-columns: 84px 1fr 96px; grid-template-rows: 100%; height: 440px; }
+.office-body { display: grid; grid-template-columns: 1fr; grid-template-rows: 100%; height: 540px; }
 .gauges { border-right: 1px solid var(--line); display: grid; grid-template-rows: repeat(6, 1fr); min-height: 0; }
 .gauge { --c: var(--muted); padding: 6px 8px; border-bottom: 1px solid var(--line); position: relative; min-height: 0; overflow: hidden; }
 .gauge:last-child { border-bottom: 0; }
@@ -206,7 +206,7 @@ canvas { display: block; }
 .gauge-top b { font-size: 16px; font-weight: 800; color: var(--text); line-height: 1; }
 .gauge-top span { font-size: 7px; letter-spacing: 0.12em; color: var(--c); font-weight: 800; }
 .gauge canvas { position: absolute; left: 8px; top: 26px; width: calc(100% - 16px); height: calc(100% - 32px); }
-.floor-wrap { position: relative; min-width: 0; min-height: 0; overflow: hidden; display: flex; flex-direction: column; background: radial-gradient(ellipse at 50% 55%, #0a0f1c 0%, var(--bg) 70%); }
+.floor-wrap { position: relative; min-width: 0; min-height: 0; overflow: hidden; display: flex; flex-direction: column; background: #03050a; }
 .floor-stage { position: relative; flex: 1; min-height: 0; }
 #floorCanvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
 .mvb { position: absolute; top: 10px; right: 14px; width: 168px; padding: 8px 10px 6px; background: rgba(9, 12, 18, 0.9); border: 1px solid var(--line-2); backdrop-filter: blur(4px); }
@@ -318,7 +318,7 @@ canvas { display: block; }
   .topbar { grid-template-columns: auto auto 1fr auto auto auto; }
   .toggles[aria-label="Layout"] { display: none; }
   .row-a, .row-b { grid-template-columns: 1fr; }
-  .office-body { grid-template-columns: 72px 1fr 84px; }
+  .office-body { height: 480px; }
 }
 @media (max-width: 820px) {
   .topbar { height: auto; padding: 8px 12px; grid-template-columns: 1fr auto auto; row-gap: 8px; }
@@ -330,7 +330,7 @@ canvas { display: block; }
   .desk { height: 92px; padding: 6px 10px 0; }
   .desk-top { font-size: 7px; letter-spacing: 0.1em; }
   .desk-name { font-size: 13px; }
-  .office-body { grid-template-columns: 1fr; grid-template-rows: auto 430px auto; height: auto; }
+  .office-body { grid-template-columns: 1fr; grid-template-rows: 100%; height: 400px; }
   .gauge, .tele { border-right: 1px solid var(--line); }
   .gauge:nth-child(3n), .tele:nth-child(3n) { border-right: 0; }
   .gauges, .telemetry { grid-template-rows: repeat(2, 1fr); grid-template-columns: repeat(3, minmax(0, 1fr)); border: 0; border-bottom: 1px solid var(--line); height: 132px; }
@@ -339,7 +339,7 @@ canvas { display: block; }
   .gauge-top span, .tele span { white-space: nowrap; }
   .tele b { font-size: 12px; white-space: nowrap; }
   .gauge, .tele { border-bottom: 0; border-right: 1px solid var(--line); }
-  .floor-wrap { height: 430px; }
+  .floor-wrap { height: 400px; }
   .mvb { position: static; width: auto; border-left: 0; border-right: 0; padding: 6px 12px 8px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px 10px; }
   .mvb-title { grid-column: 1 / -1; }
   .mvb-row { flex-direction: column; align-items: flex-start; line-height: 1.3; }

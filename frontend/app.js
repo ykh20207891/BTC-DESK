@@ -42,18 +42,12 @@
       <div class="desk-bot"><span class="word" id="dword-${d.key}">IDLE</span><span id="dmetric-${d.key}">–</span></div>
       <div class="desk-bar"><i id="dbar-${d.key}"></i></div>
     </article>`).join("");
-  $("gauges").innerHTML = DESKS.map((d) => `
-    <div class="gauge" style="--c:var(--${d.key})"><div class="gauge-top"><b id="g-${d.key}">0</b><span>${d.name}</span></div><canvas id="gc-${d.key}"></canvas></div>`).join("");
-  const TELE = ["book", "funding", "spread", "oi", "basis", "atr"];
-  $("telemetry").innerHTML = TELE.map((k) => `<div class="tele"><span data-i18n="tele_${k}"></span><b id="tv-${k}">–</b><canvas id="tc-${k}"></canvas></div>`).join("");
   $("bias").innerHTML = [["bias_dir", "bias-dir", "var(--up)"], ["bias_conf", "bias-conf", "var(--kelly)"], ["bias_book", "bias-book", "var(--taker)"]]
     .map(([k, id, c]) => `<div style="--c:${c}"><span><em data-i18n="${k}"></em><b id="${id}-v">–</b></span><i id="${id}"></i></div>`).join("");
 
   /* ---------------- state ---------------- */
   let S = null, ws = null, wsTries = 0, lastLogTs = 0, lastTapeKey = "";
   const stageOf = {}; // ticket id -> last stage seen
-  const hist = { funding: [], spread: [], oi: [], basis: [], atr: [] };
-  const pushHist = (k, v) => { const a = hist[k]; a.push(v); if (a.length > 60) a.shift(); };
 
   Floor.init($("floorCanvas"));
 
@@ -104,8 +98,6 @@
       $("dbar-" + d.key).style.transform = `scaleX(${st.state === "done" ? 1 : st.progress})`;
       setText("dnote-" + d.key, deskNote(d.key, s));
       setText("dmetric-" + d.key, deskMetric(d.key, s));
-      setText("g-" + d.key, st.gauge);
-      Charts.spark($("gc-" + d.key), st.history, COLOR[d.key], { min: 0, max: 100, fillAlpha: 0.14 });
     });
 
     // office
@@ -117,11 +109,6 @@
     if (m.last) { setText("ffPrice", money(m.last, 1)); setNum("ffChg", m.chg24, pct(m.chg24) + " " + T("h24")); }
     const live = open.find((t) => t.status === "open") || routing || open[0];
     setText("ffRight", live ? T("ticket_line", { id: live.id.toUpperCase(), dir: I18N.dir(live.direction) || "–", status: T("status_" + live.status) }) : T("no_ticket"));
-    if (mo.p_up != null) {
-      setText("mvbFair", cents(mo.p_up)); setText("mvbBook", cents(mo.p_market)); setNum("mvbEdge", mo.edge_cents, scents(mo.edge_cents));
-      setText("mvbStake", money(mo.kelly ? mo.kelly.notional : 0));
-      Charts.bell($("bell"), mo.p_up * 100, mo.p_market * 100, mo.edge_cents >= 0 ? Charts.C.up : Charts.C.down);
-    }
     Floor.update(s);
     // ticket flights on stage change
     recent.forEach((t) => {
@@ -136,16 +123,6 @@
     const deck = open.find((t) => t.status === "on_deck");
     $("deck").hidden = !deck;
     if (deck) { $("deck").dataset.id = deck.id; setText("deckText", T("deck_text", { dir: I18N.dir(deck.direction), qty: deck.qty, edge: scents(deck.edge), stake: money(deck.stake), id: deck.id.toUpperCase() })); }
-
-    // telemetry
-    if (m.last) {
-      setText("tv-book", (m.imbalance >= 0 ? "+" : "") + m.imbalance.toFixed(3)); Charts.depth($("tc-book"), m.bid_depth, m.ask_depth);
-      pushHist("funding", m.funding * 100); setText("tv-funding", pct(m.funding * 100, 4)); Charts.spark($("tc-funding"), hist.funding, Charts.C.prior);
-      pushHist("spread", m.spread); setText("tv-spread", money(m.spread, 2)); Charts.spark($("tc-spread"), hist.spread, Charts.C.taker);
-      pushHist("oi", m.oi); setText("tv-oi", (m.oi / 1000).toFixed(1) + "K BTC"); Charts.spark($("tc-oi"), hist.oi, Charts.C.kelly);
-      pushHist("basis", m.mark - m.index); setText("tv-basis", smoney(m.mark - m.index, 2)); Charts.spark($("tc-basis"), hist.basis, Charts.C.edge);
-      pushHist("atr", m.atr); setText("tv-atr", money(m.atr) + " · " + ((m.atr / m.last) * 100).toFixed(2) + "%"); Charts.spark($("tc-atr"), hist.atr, Charts.C.closer);
-    }
 
     // PnL
     const eq = L.equity || 0, seed = L.seed || 1, roi = L.roi || 0;

@@ -53,6 +53,10 @@ window.I18N = (() => {
     ch_history_empty: "BALANCE HISTORY STARTS WITH THE FIRST TICK", ch_wait_tape: "WAITING FOR THE TAPE",
     ch_scanning: "SCANNING HISTORY FOR THIS SHAPE", ch_bars: "+{n} BARS", ch_bid: "BID", ch_ask: "ASK",
     fl_core: "BTC CORE", fl_deck: "ON DECK", fl_offline: "STREAM OFFLINE · RECONNECTING", fl_waiting: "WAITING FOR STATE",
+    fl_engine: "CORE ENGINE", fl_network: "SIX-AGENT TRADING NETWORK", fl_sysstatus: "SYSTEM STATUS", fl_allonline: "ALL AGENTS ONLINE",
+    fl_online: "ONLINE", fl_status: "STATUS", fl_realtime: "REAL-TIME PROCESSING", fl_tagline: "6 AGENTS  /  1 CORE  /  BYBIT BTCUSDT 15M",
+    fl_bar_book: "BID SHARE", fl_bar_tickets: "TICKETS", fl_bar_dd: "DRAWDOWN", fl_bar_stake: "STAKE",
+    fl_verb_spotter: "SCAN", fl_verb_prior: "PRICE", fl_verb_edge: "EDGE", fl_verb_kelly: "SIZE", fl_verb_taker: "EXECUTE", fl_verb_closer: "SETTLE",
     dir_UP: "UP", dir_DOWN: "DOWN",
   };
 
@@ -109,6 +113,10 @@ window.I18N = (() => {
     ch_history_empty: "残高履歴は最初のティックから始まります", ch_wait_tape: "テープ待ち",
     ch_scanning: "この形を履歴から走査中", ch_bars: "+{n}本", ch_bid: "買い", ch_ask: "売り",
     fl_core: "BTC コア", fl_deck: "承認待ち", fl_offline: "ストリーム切断 · 再接続中", fl_waiting: "状態待ち",
+    fl_engine: "コアエンジン", fl_network: "6エージェント取引ネットワーク", fl_sysstatus: "システム状態", fl_allonline: "全エージェント稼働中",
+    fl_online: "稼働中", fl_status: "状態", fl_realtime: "リアルタイム処理", fl_tagline: "6エージェント / 1コア / BYBIT BTCUSDT 15分",
+    fl_bar_book: "買い比率", fl_bar_tickets: "チケット", fl_bar_dd: "ドローダウン", fl_bar_stake: "建玉額",
+    fl_verb_spotter: "スキャン", fl_verb_prior: "価格付け", fl_verb_edge: "エッジ", fl_verb_kelly: "サイズ", fl_verb_taker: "執行", fl_verb_closer: "決済",
     dir_UP: "上昇", dir_DOWN: "下落",
   };
 
