@@ -387,8 +387,8 @@ window.Floor = (() => {
       if (rows[0]) text(c, rows[0][0] + "  " + rows[0][1], x, y + 75, INK, 7.5, "center", 800, 0.06);
       return;
     }
-    const low = n === "taker" || n === "kelly";
-    const cw = 206, ch = 112, cxr = x + 78, cyr = low ? y - 56 : y - 112;
+    const low = n === "taker" || n === "kelly", left = n === "spotter" || n === "taker" || n === "closer";
+    const cw = 206, ch = 112, cxr = left ? x - 78 - cw : x + 78, cyr = low ? y - 56 : n === "spotter" ? y - 40 : y - 112;
     drawCard(n, cxr, cyr, cw, ch);
   }
 

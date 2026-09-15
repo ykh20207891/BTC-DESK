@@ -1,9 +1,9 @@
-"""Settings: env-backed secrets, JSON-backed operator-editable limits."""
+"""Settings: env-backed secrets, JSON-backed operator-editable limits, validation."""
 from __future__ import annotations
 
 import json
 import os
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -29,6 +29,28 @@ class RiskLimits:
     take_profit_pct: float = 0.009       # 0.9 %
 
 
+RISK_BOUNDS: dict[str, tuple[float, float]] = {
+    "max_leverage": (1.0, 10.0),
+    "risk_per_ticket": (0.001, 0.10),
+    "daily_drawdown_guard": (0.005, 0.50),
+    "kelly_fraction": (0.05, 1.0),
+    "min_edge_cents": (-100.0, 50.0),
+    "max_open_tickets": (1, 20),
+    "horizon_bars": (1, 16),
+    "stop_loss_pct": (0.001, 0.05),
+    "take_profit_pct": (0.001, 0.10),
+}
+
+
+def validate_risk(r: RiskLimits) -> None:
+    for k, (lo, hi) in RISK_BOUNDS.items():
+        v = getattr(r, k)
+        if not (lo <= v <= hi):
+            raise ValueError(f"risk.{k}={v} outside [{lo}, {hi}]")
+    if r.take_profit_pct < r.stop_loss_pct * 0.5:
+        raise ValueError("take_profit_pct must be at least half of stop_loss_pct")
+
+
 EDITABLE = ("mode", "approvals_only", "paused", "risk")
 
 
@@ -42,6 +64,8 @@ class Settings:
     approvals_only: bool = False
     paused: bool = False
     seed_equity: float = field(default_factory=lambda: float(os.getenv("PAPER_SEED_EQUITY", "10000")))
+    desk_token: str = field(default_factory=lambda: os.getenv("DESK_TOKEN", ""))
+    host: str = field(default_factory=lambda: os.getenv("HOST", "127.0.0.1"))
     taker_fee: float = 0.00055
     slippage_bps: float = 1.5
     stage_pace_s: float = 1.4            # visible dwell per desk while a ticket is routed
@@ -52,15 +76,19 @@ class Settings:
         d = asdict(self)
         d.pop("api_key")
         d.pop("api_secret")
+        d.pop("desk_token")
         d["has_keys"] = bool(self.api_key and self.api_secret)
+        d["token_required"] = bool(self.desk_token)
         return d
 
     def save(self) -> None:
         payload = {k: (asdict(self.risk) if k == "risk" else getattr(self, k)) for k in EDITABLE}
-        SETTINGS_PATH.write_text(json.dumps(payload, indent=2))
+        tmp = SETTINGS_PATH.with_suffix(".json.tmp")
+        tmp.write_text(json.dumps(payload, indent=2))
+        tmp.replace(SETTINGS_PATH)
 
     @classmethod
-    def load(cls) -> "Settings":
+    def load(cls) -> Settings:
         s = cls()
         if SETTINGS_PATH.exists():
             try:
@@ -73,8 +101,12 @@ class Settings:
                         s.risk = RiskLimits(**{kk: vv for kk, vv in saved["risk"].items() if kk in fields})
                     else:
                         setattr(s, k, saved[k])
-            except Exception:
+            except (OSError, ValueError, TypeError):
                 pass
+        try:
+            validate_risk(s.risk)
+        except ValueError:
+            s.risk = RiskLimits()
         if s.mode not in ("paper", "live"):
             s.mode = "paper"
         if s.mode == "live" and not (s.api_key and s.api_secret):
@@ -82,23 +114,36 @@ class Settings:
         return s
 
     def apply(self, patch: dict) -> list[str]:
-        """Apply an operator patch; returns the list of fields changed."""
+        """Apply an operator patch atomically; returns the list of fields changed."""
         changed: list[str] = []
+        new_risk = replace(self.risk)
+        new_mode, new_appr, new_paused = self.mode, self.approvals_only, self.paused
         for k, v in patch.items():
             if k == "risk" and isinstance(v, dict):
                 for kk, vv in v.items():
-                    if kk in RiskLimits.__dataclass_fields__:
-                        typ = type(getattr(self.risk, kk))
-                        setattr(self.risk, kk, typ(vv))
-                        changed.append(f"risk.{kk}")
-            elif k in ("approvals_only", "paused"):
-                setattr(self, k, bool(v))
+                    if kk not in RiskLimits.__dataclass_fields__:
+                        continue
+                    typ = type(getattr(new_risk, kk))
+                    try:
+                        setattr(new_risk, kk, typ(vv))
+                    except (TypeError, ValueError):
+                        raise ValueError(f"risk.{kk}: not a number")
+                    changed.append(f"risk.{kk}")
+            elif k == "approvals_only":
+                new_appr = bool(v)
                 changed.append(k)
-            elif k == "mode" and v in ("paper", "live"):
+            elif k == "paused":
+                new_paused = bool(v)
+                changed.append(k)
+            elif k == "mode":
+                if v not in ("paper", "live"):
+                    raise ValueError("mode must be paper or live")
                 if v == "live" and not (self.api_key and self.api_secret):
                     raise ValueError("live mode needs BYBIT_API_KEY / BYBIT_API_SECRET in .env")
-                self.mode = v
+                new_mode = v
                 changed.append(k)
+        validate_risk(new_risk)
+        self.risk, self.mode, self.approvals_only, self.paused = new_risk, new_mode, new_appr, new_paused
         if changed:
             self.save()
         return changed

@@ -51,16 +51,16 @@ def rsi_series(closes: list[float], n: int = 14) -> list[float]:
     ag = al = 0.0
     for i in range(1, len(closes)):
         d = closes[i] - closes[i - 1]
-        g, l = max(d, 0), max(-d, 0)
+        g, lo = max(d, 0), max(-d, 0)
         if i <= n:
             ag += g / n
-            al += l / n
+            al += lo / n
             out.append(50.0)
             continue
         ag = (ag * (n - 1) + g) / n
-        al = (al * (n - 1) + l) / n
+        al = (al * (n - 1) + lo) / n
         out.append(100.0 if al == 0 else 100 - 100 / (1 + ag / al))
-    return [50.0] + out
+    return [50.0, *out]
 
 
 def session_vwap(candles: list[list[float]]) -> list[float]:
@@ -68,11 +68,11 @@ def session_vwap(candles: list[list[float]]) -> list[float]:
     out: list[float] = []
     pv = vol = 0.0
     day = None
-    for ts, o, h, l, c, v in candles:
+    for ts, _o, h, lo, c, v in candles:
         d = int(ts // 86_400_000)
         if d != day:
             day, pv, vol = d, 0.0, 0.0
-        tp = (h + l + c) / 3
+        tp = (h + lo + c) / 3
         pv += tp * v
         vol += v
         out.append(pv / vol if vol else c)
@@ -98,9 +98,9 @@ def atr(candles: list[list[float]], n: int = 14) -> float:
         return 0.0
     trs = []
     for i in range(1, len(candles)):
-        _, o, h, l, c, v = candles[i]
+        h, lo = candles[i][2], candles[i][3]
         pc = candles[i - 1][4]
-        trs.append(max(h - l, abs(h - pc), abs(l - pc)))
+        trs.append(max(h - lo, abs(h - pc), abs(lo - pc)))
     w = trs[-n:]
     return sum(w) / len(w)
 
