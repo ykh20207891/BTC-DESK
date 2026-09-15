@@ -24,8 +24,9 @@ window.Charts = (() => {
     const n = parseInt(hex.slice(1), 16);
     return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
   };
+  const TS = 1.3; // global text scale: the operator reads this from desk distance
   const label = (ctx, txt, x, y, color, size = 8, align = "left", weight = 700) => {
-    ctx.font = `${weight} ${size}px ${FONT}`; ctx.fillStyle = color; ctx.textAlign = align; ctx.textBaseline = "middle";
+    ctx.font = `${weight} ${Math.round(size * TS * 10) / 10}px ${FONT}`; ctx.fillStyle = color; ctx.textAlign = align; ctx.textBaseline = "middle";
     ctx.fillText(txt, x, y);
   };
   const fmt = (v) => "$" + Math.round(v).toLocaleString("en-US");
@@ -68,7 +69,7 @@ window.Charts = (() => {
     let lo = Math.min(...vals, seed), hi = Math.max(...vals, seed);
     const span = Math.max(hi - lo, seed * 0.002);
     lo -= span * 0.15; hi += span * 0.15;
-    const padR = 54;
+    const padR = 66;
     const X = (i) => (i / (hist.length - 1)) * (w - padR);
     const Y = (v) => h - 4 - ((v - lo) / (hi - lo)) * (h - 10);
     const last = vals[vals.length - 1];
@@ -113,7 +114,7 @@ window.Charts = (() => {
   function candles(canvas, rows, opts = {}) {
     const { ctx, w, h } = fit(canvas);
     if (!rows || rows.length < 5) { label(ctx, L("ch_wait_tape"), 10, h / 2, C.dim, 8); return; }
-    const axisW = 56, top = 10, volH = Math.round(h * 0.18), bottom = 14;
+    const axisW = 70, top = 12, volH = Math.round(h * 0.18), bottom = 16;
     const plotW = w - axisW, plotH = h - top - volH - bottom;
     const cw = 5, n = Math.min(rows.length, Math.floor(plotW / cw));
     if (n < 5 || plotH < 20) return;
@@ -189,7 +190,7 @@ window.Charts = (() => {
     // last price tag
     const last = opts.last || closes[n - 1], ly = Y(last), lc = last >= data[n - 1][1] ? C.up : C.down;
     ctx.setLineDash([1, 3]); ctx.strokeStyle = hexA(lc, 0.5); ctx.beginPath(); ctx.moveTo(0, ly); ctx.lineTo(plotW, ly); ctx.stroke(); ctx.setLineDash([]);
-    ctx.fillStyle = lc; ctx.fillRect(plotW + 2, ly - 7, axisW - 4, 14);
+    ctx.fillStyle = lc; ctx.fillRect(plotW + 2, ly - 9, axisW - 4, 18);
     label(ctx, fmt(last), plotW + 6, ly, "#05070b", 8, "left", 800);
     // time labels
     const first = new Date(data[0][0]), lastT = new Date(data[n - 1][0]);
