@@ -32,13 +32,17 @@ def run(title: str, cmd: list[str]) -> bool:
 async def live_smoke(seconds: int = 20) -> bool:
     """Boot the real engine on real data and assert the basics a running desk must satisfy."""
     sys.path.insert(0, str(ROOT))
+    import tempfile
+
     from backend.config import Settings
     from backend.engine import Engine
+    from backend.storage import Storage
 
     s = Settings.load()
-    s.mode = "paper"
+    s.mode = "paper"                      # never live, whatever the settings say
     s.stage_pace_s = 0.2
-    e = Engine(s)
+    tmp = tempfile.mkdtemp(prefix="btcdesk-smoke-")
+    e = Engine(s, store=Storage(Path(tmp) / "smoke.sqlite"))   # a throwaway ledger: never touch the running desk's book
     ok = True
     try:
         await e.start()

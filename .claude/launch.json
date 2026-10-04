@@ -3,7 +3,11 @@
   "configurations": [
     {
       "name": "btc-desk",
-      "runtimeExecutable": "python",
+      "url": "http://localhost:8765"
+    },
+    {
+      "name": "btc-desk-standalone",
+      "runtimeExecutable": ".venv/Scripts/python.exe",
       "runtimeArgs": ["run.py"],
       "port": 8765
     }

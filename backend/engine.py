@@ -30,6 +30,8 @@ DESK_INDEX = {name: i for i, (name, _) in enumerate(DESKS)}
 BAR_MS = 15 * 60 * 1000
 ROUTING_STALE_S = 10 * 60          # a ticket stuck in routing this long is abandoned
 MAX_TICKETS_IN_MEMORY = 300
+MIN_MS = 60_000
+LATE_GRACE_MS = 2 * MIN_MS        # a horizon checked later than this was missed (engine down / stalled)
 
 
 def _now() -> float:
@@ -120,7 +122,7 @@ class Engine:
         self._last_live_equity = 0.0
         self._last_prune = _now()
         self._pipeline_task: asyncio.Task | None = None
-        self._pending_reason: str | None = None
+        self._pending: tuple[str, int] | None = None
         self._last_bar_ts = 0
         self._tasks: list[asyncio.Task] = []
         self.ws: BybitPublicWS | None = None
@@ -155,6 +157,8 @@ class Engine:
         self._last_bar_ts = self.candles_15m[-2][0] if len(self.candles_15m) >= 2 else 0
         if isinstance(self.broker, LiveBroker):
             await self._reconcile_live()
+        else:
+            await self._replay_downtime()
         self.ws = BybitPublicWS(
             [f"kline.1.{sym}", f"kline.15.{sym}", f"tickers.{sym}", f"orderbook.50.{sym}", f"publicTrade.{sym}"],
             self.on_ws, self.on_ws_status, self.s.testnet,
@@ -487,8 +491,56 @@ class Engine:
                 reason = "target"
             elif _now() * 1000 >= t["horizon_ts"]:
                 reason = "horizon"
+            if reason == "horizon" and _now() * 1000 - t["horizon_ts"] > LATE_GRACE_MS and not isinstance(self.broker, LiveBroker):
+                exit_ = self.replay_exit(pos, t["horizon_ts"])
+                if exit_:
+                    await self.settle(tid, exit_[1], price=exit_[0])
+                else:
+                    await self.settle(tid, "stale")
+                continue
             if reason:
                 await self.settle(tid, reason)
+
+    def candle_close_at(self, ts_ms: int) -> float | None:
+        """Close of the 1m bar that ENDS at ts_ms (i.e. starts one minute earlier), if we have it."""
+        start = (int(ts_ms) // MIN_MS) * MIN_MS - MIN_MS
+        for row in reversed(self.candles_1m):
+            if row[0] == start:
+                return row[4]
+            if row[0] < start:
+                break
+        return None
+
+    def replay_exit(self, pos: Position, until_ms: int) -> tuple[float, str] | None:
+        """Walk the 1m bars from entry to `until_ms` and return the first exit the desk would have taken:
+        (stop price, "stop"), (target price, "target") or (horizon close, "horizon"). A bar that touches both
+        is booked as the stop (the conservative read). None when the bars do not cover the whole span."""
+        first = (int(pos.opened_ts * 1000) // MIN_MS) * MIN_MS
+        last = (int(until_ms) // MIN_MS) * MIN_MS - MIN_MS
+        bars = [r for r in self.candles_1m if first <= r[0] <= last]
+        if not bars or bars[0][0] > first or bars[-1][0] < last:
+            return None
+        up = pos.side == "UP"
+        for _ts, _o, h, lo, _c, _v in bars:
+            hit_sl = lo <= pos.sl if up else h >= pos.sl
+            hit_tp = h >= pos.tp if up else lo <= pos.tp
+            if hit_sl:
+                return pos.sl, "stop"
+            if hit_tp:
+                return pos.tp, "target"
+        return bars[-1][4], "horizon"
+
+    async def _replay_downtime(self):
+        """Paper positions held while the engine was down: settle any stop/target/horizon that happened meanwhile."""
+        now_ms = int(_now() * 1000)
+        for tid in list(self.positions):
+            t, pos = self.tickets[tid], self.positions[tid]
+            until = min(now_ms, t["horizon_ts"])
+            exit_ = self.replay_exit(pos, until)
+            if exit_ and (exit_[1] != "horizon" or now_ms >= t["horizon_ts"]):
+                await self.settle(tid, exit_[1], price=exit_[0])
+            elif exit_ is None and now_ms - t["horizon_ts"] > LATE_GRACE_MS:
+                await self.settle(tid, "stale")
 
     def _sweep_stale(self):
         """Approval-only tickets expire at their horizon; a ticket stuck in routing is abandoned."""
@@ -537,13 +589,13 @@ class Engine:
         if self.positions and abs(local - size) > self.lot:
             self.log_event("core", "SYSTEM", None, f"position size mismatch · desk {local} vs exchange {size} · closes use the exchange size", key="size_mismatch", local=local, exchange=size)
 
-    async def settle(self, tid: str, reason: str):
+    async def settle(self, tid: str, reason: str, price: float | None = None):
         t = self.tickets[tid]
         pos = self.positions.pop(tid)
         self._desk_state("closer", "run", 0.5)
         self.holder = "closer"
         self.stage = 5
-        mark = self.mark_price()
+        mark = price or self.mark_price()
         try:
             fill, pnl = await self.broker.close(pos, mark)
         except Exception as e:  # keep the position and retry next tick
@@ -588,14 +640,16 @@ class Engine:
 
     # ------------------------------------------------------------------ pipeline
     def _schedule_pipeline(self, reason: str):
+        # the bar is fixed when the trigger arrives, not when the pipeline gets to run
+        bar_ts = self._last_bar_ts or int(_now() * 1000) // BAR_MS * BAR_MS
         if self._pipeline_task and not self._pipeline_task.done():
-            self._pending_reason = reason        # run once the current ticket is routed
+            self._pending = (reason, bar_ts)     # run once the current ticket is routed
             return
-        self._pipeline_task = asyncio.get_event_loop().create_task(self._run_pipeline(reason))
+        self._pipeline_task = asyncio.get_event_loop().create_task(self._run_pipeline(reason, bar_ts))
 
-    async def _run_pipeline(self, reason: str):
+    async def _run_pipeline(self, reason: str, bar_ts: int):
         try:
-            await self._pipeline(reason)
+            await self._pipeline(reason, bar_ts)
         except asyncio.CancelledError:
             raise
         except Exception as e:
@@ -603,9 +657,9 @@ class Engine:
             self.log_event("core", "SYSTEM", None, f"pipeline error · {e}", key="err", what="pipeline", err=str(e))
             self._reset_desks()
         finally:
-            if self._pending_reason:
-                reason2, self._pending_reason = self._pending_reason, None
-                self._pipeline_task = asyncio.get_event_loop().create_task(self._run_pipeline(reason2))
+            if self._pending:
+                (reason2, bar2), self._pending = self._pending, None
+                self._pipeline_task = asyncio.get_event_loop().create_task(self._run_pipeline(reason2, bar2))
 
     def _desk_state(self, name: str, state: str, progress: float, note: str = ""):
         d = self.desks[name]
@@ -639,7 +693,7 @@ class Engine:
         kz["notional"] = round(qty * mark, 2)
         return kz
 
-    async def _pipeline(self, reason: str):
+    async def _pipeline(self, reason: str, bar_ts: int | None = None):
         if not self.market:
             return
         s = self.s
@@ -659,10 +713,14 @@ class Engine:
         if open_n >= s.risk.max_open_tickets:
             self.log_event("kelly", "HOLD", None, f"{reason} · {open_n} tickets open · at cap", key="hold_cap", reason=reason, n=open_n)
             return
+        bar_start = bar_ts or self._last_bar_ts or int(_now() * 1000) // BAR_MS * BAR_MS
+        if reason != "manual scan" and any(x.get("bar_ts") == bar_start for x in self.tickets.values()):
+            # one automatic ticket per 15m bar, however many times the engine restarts inside it
+            self.log_event("core", "HOLD", None, f"{reason} · this bar already has a ticket · no ticket cut", key="hold_bar", reason=reason)
+            return
         tid = uuid.uuid4().hex[:8]
-        bar_start = self._last_bar_ts or int(_now() * 1000) // BAR_MS * BAR_MS
         t = {
-            "id": tid, "created": _now(), "status": "routing", "stage": 0, "reason_open": reason,
+            "id": tid, "created": _now(), "status": "routing", "stage": 0, "reason_open": reason, "bar_ts": bar_start,
             "horizon_ts": bar_start + BAR_MS * (s.risk.horizon_bars + 1), "mode": s.mode,
         }
         self.tickets[tid] = t
@@ -830,13 +888,24 @@ class Engine:
         mark = self.mark_price()
         if not mark:
             return
+        dropped = 0
         for pid, p in list(self.predictions.items()):
             if now_ms < p["horizon_ts"]:
                 continue
-            went_up = mark > p["price"]
+            horizon_price = self.candle_close_at(p["horizon_ts"])
+            if horizon_price is None:
+                if now_ms - p["horizon_ts"] <= LATE_GRACE_MS:
+                    horizon_price = mark            # on time, the bar just has not landed yet
+                else:                               # missed while down and outside our bar history: never guess
+                    p.update({"resolved": _now(), "outcome": None, "stale": True})
+                    self.store.save_prediction(p)
+                    self.predictions.pop(pid)
+                    dropped += 1
+                    continue
+            went_up = horizon_price > p["price"]
             self.learner.lr = self.s.learning.lr
             self.learner.resolve(p["contrib"], p["p_model"], p["p_learn"], went_up)
-            p.update({"resolved": _now(), "outcome": 1 if went_up else 0, "horizon_price": mark})
+            p.update({"resolved": _now(), "outcome": 1 if went_up else 0, "horizon_price": horizon_price})
             self.store.save_prediction(p)
             self.predictions.pop(pid)
             self.store.set("learner", self.learner.dump())
@@ -846,6 +915,8 @@ class Engine:
                 f"resolved {pid[1:]} · {'UP' if went_up else 'DOWN'} · hand {p['p_model']*100:.0f}¢ vs learner {p['p_learn']*100:.0f}¢ · n {s['samples']} · hit {s['hit_model']*100:.0f}% vs {s['hit_learn']*100:.0f}%",
                 key="learn", res="UP" if went_up else "DOWN", hand=f"{p['p_model']*100:.0f}¢", learn=f"{p['p_learn']*100:.0f}¢", n=s["samples"], hh=f"{s['hit_model']*100:.0f}%", hl=f"{s['hit_learn']*100:.0f}%",
             )
+        if dropped:
+            self.log_event("prior", "LEARN", None, f"discarded {dropped} predictions missed while offline · not used for learning", key="learn_stale", n=dropped)
 
     def learning_state(self) -> dict:
         lg = self.s.learning

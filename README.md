@@ -79,7 +79,12 @@ python tools/check.py --watch    # ソース変更のたびに自動で再実行
 
 ## 運用（24時間）
 
-- `powershell -ExecutionPolicy Bypass -File run_forever.ps1` でクラッシュ時に自動再起動します。
+- **自動起動（推奨）**: `powershell -ExecutionPolicy Bypass -File toolsutostart.ps1 install` でログオン時に自動起動するタスク「BTC DESK」を登録し、すぐ起動します。状態確認は `... status`、停止と登録解除は `... remove`。管理者権限は不要です。
+- エンジンはプロジェクト内の `.venv` の Python で動きます（`python -m venv .venv` → `.venv\Scripts\pip install -r requirements.txt`）。Claude アプリを閉じても止まりません。
+- 中身は `run_forever.ps1`（落ちたら自動再起動、二重起動はしない）。出力は `data/run_forever.log`。
+- PC の再起動後はログオンした時点で復帰します。止まっている間に損切り・利確・期限を迎えたペーパーのポジションは、起動時に1分足を遡って「実際にそうなった価格」で決済します（足の履歴は約50時間分。それより古いものは現在値で決済し、理由を stale と記録）。
+- 学習の予測は「期限ちょうどの1分足の終値」で採点します。停止中で採点できない予測は学習に使わず破棄します。
+- 自動の起票は1本の15分足につき1枚まで（再起動を繰り返しても同じ足で何枚も建てない）。手動の「今すぐ起票」は例外。
 - 稼働確認は `GET /api/health`（ストリーム切断や足の停止で 503）。ログは `data/engine.log`（ローテーション）。
 - LAN に公開する場合（`HOST=0.0.0.0`）は `.env` に `DESK_TOKEN` を設定してください。設定変更・一時停止・承認などの操作APIはトークン必須になります。
 - 日次ドローダウンガードと日中ピークは再起動をまたいで保持されます。ライブ口座は起動時に取引所のポジションと突き合わせ、食い違いはログに残して自動では触りません。

@@ -34,8 +34,13 @@ async def test_predictions_are_recorded_resolved_and_only_drive_the_desk_when_ac
     assert e.model["p_up"] == e.model["p_hand"] and e.learning_state()["mode"] == "shadow" and not e.learning_state()["active"]
     # resolve: horizon passes, price moved up
     pred["horizon_ts"] = int(time.time() * 1000) - 1
-    rest.price = pred["price"] * 1.01
-    e.ticker = await rest.ticker("BTCUSDT")
+    bar_start = pred["horizon_ts"] // 60_000 * 60_000 - 60_000      # graded on the 1m bar that closed at the horizon
+    up_px = pred["price"] * 1.01
+    rows = [r for r in e.candles_1m if r[0] == bar_start]
+    if rows:
+        rows[0][4] = up_px
+    else:
+        e.candles_1m.append([bar_start, up_px, up_px, up_px, up_px, 1.0])
     e._resolve_predictions()
     assert pid not in e.predictions and e.learner.samples == 1 and e.log[-1]["key"] == "learn"
     saved = next(p for p in store.load_predictions() if p["id"] == pid)

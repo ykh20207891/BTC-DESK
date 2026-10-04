@@ -134,7 +134,7 @@ window.I18N = (() => {
     stop: "損切り", target: "利確", horizon: "ホライズン", above: "上", below: "下",
     kelly: "ケリー", risk: "リスク", leverage: "レバレッジ", paper: "ペーパー", live: "リアル",
     PAPER: "ペーパー", LIVE: "リアル", mainnet: "メインネット", testnet: "テストネット", tick: "ティック", rescan: "再スキャン",
-    "holding to horizon": "ホライズンまで保有", "awaiting approval": "承認待ち",
+    "holding to horizon": "ホライズンまで保有", "awaiting approval": "承認待ち", stale: "停止中に期限切れ（現在値で決済）",
   };
   const LOG_JA = {
     boot: "デスク起動 · {mode}モード · {sym} 15分 · {net}データ",
@@ -173,6 +173,9 @@ window.I18N = (() => {
     op_approvals: "承認必須モード {on}",
     op_mode: "モードを {mode} に設定 · ブローカー切替はエンジン再起動が必要",
     learn: "予測 {res} を解決 · 手動 {hand} 対 学習 {learn} · n {n} · 的中 {hh} 対 {hl}",
+    learn_stale: "停止中に期限が来た予測 {n} 件を破棄 · 学習には使わない",
+    hold_bar: "{reason} · この足は起票済み · 起票なし",
+    hold_offline: "{reason} · ストリーム切断中 · 起票なし",
   };
 
   let lang = "en";

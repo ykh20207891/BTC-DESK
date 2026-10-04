@@ -182,7 +182,7 @@ async def engine(settings, rest, store):
     await e.stop()
 
 
-async def run_pipeline(e: Engine, reason: str = "test"):
+async def run_pipeline(e: Engine, reason: str = "manual scan"):
     e._schedule_pipeline(reason)
     await wait_pipeline(e)
 
