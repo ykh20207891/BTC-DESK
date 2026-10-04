@@ -41,7 +41,7 @@ data/            ledger.sqlite（台帳）, settings.json, engine.log
 
 ## 運用メモ
 
-- 常時稼働: タスクスケジューラ「BTC DESK」（ログオン時に自動起動、`toolsutostart.ps1 install / status / remove`）。中身は `run_forever.ps1`（落ちたら自動再起動）。Claude アプリを閉じても止まらない
+- 常時稼働: タスクスケジューラ「BTC DESK」（ログオン時に自動起動、`tools\autostart.ps1 install / status / remove`）。中身は `run_forever.ps1`（落ちたら自動再起動）。Claude アプリを閉じても止まらない
 - Claude アプリのプレビューは起動中のエンジンに接続するだけ（`.claude/launch.json` の btc-desk）
 - 稼働確認: `GET /api/health`（ストリーム切断・足の停止で 503）
 - 日次DDガードと日中ピークは再起動をまたいで保持される（再起動でガードは解除されない）
