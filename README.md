@@ -79,7 +79,8 @@ python tools/check.py --watch    # ソース変更のたびに自動で再実行
 
 ## 運用（24時間）
 
-- **自動起動（推奨）**: `powershell -ExecutionPolicy Bypass -File tools\autostart.ps1 install` でログオン時に自動起動するタスク「BTC DESK」を登録し、すぐ起動します。状態確認は `... status`、停止と登録解除は `... remove`。管理者権限は不要です。
+- **自動起動の初回登録**: エクスプローラーで `toolsutostart-install.cmd` をダブルクリック（Claude アプリの中から登録したタスクは、アプリの更新で消えることがあります）。結果は `data/autostart.log`。
+- **自動起動（コマンド）**: `powershell -ExecutionPolicy Bypass -File tools\autostart.ps1 install` でログオン時に自動起動するタスク「BTC DESK」を登録し、すぐ起動します。状態確認は `... status`、停止と登録解除は `... remove`。管理者権限は不要です。
 - エンジンはプロジェクト内の `.venv` の Python で動きます（`python -m venv .venv` → `.venv\Scripts\pip install -r requirements.txt`）。Claude アプリを閉じても止まりません。
 - 中身は `run_forever.ps1`（落ちたら自動再起動、二重起動はしない）。出力は `data/run_forever.log`。
 - PC の再起動後はログオンした時点で復帰します。止まっている間に損切り・利確・期限を迎えたペーパーのポジションは、起動時に1分足を遡って「実際にそうなった価格」で決済します（足の履歴は約50時間分。それより古いものは現在値で決済し、理由を stale と記録）。

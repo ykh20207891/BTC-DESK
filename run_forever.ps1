@@ -26,7 +26,7 @@ $delay = 5
 while ($true) {
     $start = Get-Date
     Add-Content $log ("[{0}] starting BTC DESK with {1}" -f $start.ToString("s"), $py)
-    & $py run.py *>> $log
+    cmd /c "`"$py`" run.py >> `"$log`" 2>&1"   # cmd redirects: PowerShell 5.1 would wrap stderr lines as errors
     $ran = (Get-Date) - $start
     if ($ran.TotalSeconds -gt 300) { $delay = 5 } else { $delay = [Math]::Min($delay * 2, 120) }
     Add-Content $log ("[{0}] engine exited after {1:n0}s; restarting in {2}s" -f (Get-Date).ToString("s"), $ran.TotalSeconds, $delay)
