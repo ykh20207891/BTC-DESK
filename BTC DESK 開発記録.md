@@ -94,7 +94,7 @@ data/            ledger.sqlite（台帳）, settings.json, engine.log
 - エンジン停止を発見：10/8 16:09 の PC 再起動で停止。その後、自動起動タスク「BTC DESK」と `run_forever.ps1` が消えていて復帰しなかった（原因は特定できず。Claude アプリ内から登録したタスクがアプリ更新で消された可能性が高い）
 - `run_forever.ps1` を git から復元。stderr の扱いを修正（ログに NativeCommandError が混ざらないように）
 - 元本を $1,000 に変更（$500 の台帳は `data/backup/` に退避）。タスクを再登録して再開
-- 恒久対策：`toolsutostart-install.cmd` をエクスプローラーから一度ダブルクリックして、デスクトップ側からタスクを登録し直す
+- 恒久対策：`tools\autostart-install.cmd` をエクスプローラーから一度ダブルクリックして、デスクトップ側からタスクを登録し直す
 
 ## 未決・次の候補
 
